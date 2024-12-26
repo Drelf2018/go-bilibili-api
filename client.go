@@ -15,11 +15,7 @@ var cli = &req.Client{
 }
 
 func init() {
-	var err error
-	cli.BaseURL, err = url.Parse("https://api.bilibili.com/x")
-	if err != nil {
-		panic(err)
-	}
+	cli.BaseURL, _ = url.Parse("https://api.bilibili.com/x")
 }
 
 func Do[T any](api req.API) (result T, err error) {
