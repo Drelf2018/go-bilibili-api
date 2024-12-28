@@ -1,7 +1,6 @@
 package api
 
 import (
-	"context"
 	"strconv"
 	"strings"
 
@@ -868,28 +867,6 @@ type RelationFollowings struct {
 
 func (RelationFollowings) RawURL() string {
 	return "/relation/followings"
-}
-
-func (api *RelationFollowings) Iter(ctx context.Context) func(yeild func(*RelationItem) bool) {
-	return func(yeild func(*RelationItem) bool) {
-		var result RelationFollowingsResponse
-		err := cli.ResultWithContext(ctx, api, &result)
-		if err != nil {
-			return
-		}
-		for len(result.Data.List) != 0 {
-			for _, item := range result.Data.List {
-				if !yeild(&item) {
-					return
-				}
-			}
-			api.Pn++
-			err = cli.Result(api, &result)
-			if err != nil {
-				return
-			}
-		}
-	}
 }
 
 type RelationFollowingsResponse struct {
