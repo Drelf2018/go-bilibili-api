@@ -66,4 +66,8 @@ func (c *Credential) UID() int {
 	return i
 }
 
+func (c *Credential) Refresh() error {
+	return PostConfirmRefresh(c)
+}
+
 var _ req.CookieJar = (*Credential)(nil)
