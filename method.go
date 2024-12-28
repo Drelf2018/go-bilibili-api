@@ -286,7 +286,7 @@ func (PostCSRF) NewRequestWithContext(ctx context.Context, cli *req.Client, api 
 	// create form body
 	task := req.LoadTask(api)
 	value := reflect.Indirect(reflect.ValueOf(api))
-	form := url.Values{"csrf": {biliJct}} //, "csrf_token": {biliJct}
+	form := url.Values{"csrf": {biliJct}}
 	for _, data := range task.Body {
 		err = cli.AddValue(form, data, value)
 		if err != nil {

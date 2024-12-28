@@ -1239,7 +1239,7 @@ func GetUser(uid int, credential *Credential) (result UserResponse, err error) {
 	return
 }
 
-// 查询所有特别关注 mid
+// 查询所有特别关注 UID
 type Special struct {
 	req.Get
 	*Credential
@@ -1254,7 +1254,7 @@ type SpecialResponse struct {
 	Data []int `json:"data"`
 }
 
-// 查询所有特别关注 mid
+// 查询所有特别关注 UID
 func GetSpecial(credential *Credential) (result SpecialResponse, err error) {
 	err = cli.Result(Special{Credential: credential}, &result)
 	return
@@ -1441,7 +1441,7 @@ type MedalWall struct {
 	req.Get
 	*Credential
 
-	//目标 mid
+	// 目标 UID
 	TargetID int `api:"query"`
 }
 
@@ -1625,7 +1625,7 @@ type Set struct {
 	// 与 avid 任选一个
 	BVID string `api:"body" req:"bvid"`
 
-	//置顶视频备注 最大 40 字符
+	// 置顶视频备注 最大 40 字符
 	Reason string `api:"body"`
 }
 
@@ -1699,7 +1699,7 @@ type Add struct {
 	// 与 avid 任选一个
 	BVID string `api:"body" req:"bvid"`
 
-	//置顶视频备注 最大 40 字符
+	// 置顶视频备注 最大 40 字符
 	Reason string `api:"body"`
 }
 
