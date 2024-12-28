@@ -22,7 +22,7 @@ func (Unread) RawURL() string {
 
 type UnreadResponse struct {
 	Error
-	TTL  int `json:"ttl"`
+
 	Data struct {
 		At          int `json:"at"`
 		Chat        int `json:"chat"`
@@ -131,7 +131,7 @@ func (SendMsg) RawURL() string {
 
 type SendMsgResponse struct {
 	Error
-	TTL  int `json:"ttl"`
+
 	Data struct {
 		MsgKey int64 `json:"msg_key"`
 		EInfos []struct {
@@ -198,7 +198,6 @@ func (FetchSessionMsgs) RawURL() string {
 type FetchSessionMsgsResponse struct {
 	Error
 	Msg  string `json:"msg"`
-	TTL  int    `json:"ttl"`
 	Data struct {
 		Messages []struct {
 			SenderUID      int         `json:"sender_uid"`

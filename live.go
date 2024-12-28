@@ -116,7 +116,6 @@ func (DanmuInfo) RawURL() string {
 
 type DanmuInfoResponse struct {
 	Error
-	TTL  int `json:"ttl"` // 1
 	Data struct {
 		Group            string  `json:"group"`              // "live"
 		BusinessID       int     `json:"business_id"`        // 0

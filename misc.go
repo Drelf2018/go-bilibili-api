@@ -15,7 +15,6 @@ func (Now) RawURL() string {
 
 type NowResponse struct {
 	Error
-	TTL  int `json:"ttl"` // 1
 	Data struct {
 		Now int `json:"now"` // 1735223842
 	} `json:"data"`
@@ -38,7 +37,6 @@ func (Timestamp) RawURL() string {
 
 type TimestampResponse struct {
 	Error
-	TTL  int `json:"ttl"` // 1
 	Data struct {
 		Timestamp int   `json:"timestamp"` // 1735223942
 		Microtime int64 `json:"microtime"` // 1735223942970

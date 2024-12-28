@@ -30,7 +30,6 @@ func (Generate) RawURL() string {
 
 type GenerateResponse struct {
 	Error
-	TTL  int `json:"ttl"` // 1
 	Data struct {
 		URL       string `json:"url"`        // https://account.bilibili.com/h5/account-h5/auth/scan-web?navhide=1&callback=close&qrcode_key=52360fad71935c52ca33f4f24fd18e07&from=
 		QRCodeKey string `json:"qrcode_key"` // 52360fad71935c52ca33f4f24fd18e07
@@ -60,7 +59,6 @@ func (Poll) RawURL() string {
 
 type PollResponse struct {
 	Error
-	TTL  int `json:"ttl"`
 	Data struct {
 		Error
 		URL          string `json:"url"`
@@ -108,7 +106,6 @@ func (Nav) RawURL() string {
 // 完整返回值结构
 type NavResponse struct {
 	Error
-	TTL  int `json:"ttl"` // 1
 	Data struct {
 		IsLogin       bool   `json:"isLogin"` // false
 		EmailVerified int    `json:"email_verified"`
@@ -136,13 +133,13 @@ type NavResponse struct {
 			Desc string `json:"desc"`
 		} `json:"officialVerify"`
 		Pendant struct {
-			Pid               int    `json:"pid"`
+			PID               int    `json:"pid"`
 			Name              string `json:"name"`
 			Image             string `json:"image"`
 			Expire            int    `json:"expire"`
 			ImageEnhance      string `json:"image_enhance"`
 			ImageEnhanceFrame string `json:"image_enhance_frame"`
-			NPid              int    `json:"n_pid"`
+			NPID              int    `json:"n_pid"`
 		} `json:"pendant"`
 		Scores       int    `json:"scores"`
 		Uname        string `json:"uname"`
@@ -224,7 +221,6 @@ type NavResponse struct {
 type NavResponseSimple struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
-	TTL     int    `json:"ttl"` // 1
 	Data    struct {
 		IsLogin bool `json:"isLogin"` // false
 		WbiImg  struct {
@@ -240,13 +236,10 @@ func GetNav(credential *Credential) (result NavResponseSimple, err error) {
 	return
 }
 
-// 登录用户状态数（双端）
+// 登录用户状态数
 type NavStat struct {
 	req.Get
 	*Credential
-
-	// APP 登录 Token
-	AccessKey string `api:"query,omitempty"`
 }
 
 func (NavStat) RawURL() string {
@@ -255,7 +248,7 @@ func (NavStat) RawURL() string {
 
 type NavStatResponse struct {
 	Error
-	TTL  int `json:"ttl"`
+
 	Data struct {
 		Following    int `json:"following"`
 		Follower     int `json:"follower"`
@@ -299,9 +292,6 @@ func GetCoin(credential *Credential) (result CoinResponse, err error) {
 type Account struct {
 	req.Get
 	*Credential
-
-	// APP 登录 Token
-	AccessKey string `api:"query,omitempty"`
 }
 
 func (Account) RawURL() string {
@@ -310,7 +300,7 @@ func (Account) RawURL() string {
 
 type AccountResponse struct {
 	Error
-	TTL  int `json:"ttl"`
+
 	Data struct {
 		MID      int    `json:"mid"`
 		Uname    string `json:"uname"`
@@ -333,9 +323,6 @@ func GetAccount(credential *Credential) (result AccountResponse, err error) {
 type Reward struct {
 	req.Get
 	*Credential
-
-	// APP 登录 Token
-	AccessKey string `api:"query,omitempty"`
 }
 
 func (Reward) RawURL() string {
@@ -344,7 +331,7 @@ func (Reward) RawURL() string {
 
 type RewardResponse struct {
 	Error
-	TTL  int `json:"ttl"`
+
 	Data struct {
 		Login        bool `json:"login"`
 		Watch        bool `json:"watch"`
@@ -375,7 +362,6 @@ func (WebUserInfo) RawURL() string {
 
 type WebUserInfoResponse struct {
 	Error
-	TTL  int `json:"ttl"` // 1
 	Data struct {
 		VipPayType         int    `json:"vip_pay_type"`
 		VipIsAnnual        bool   `json:"vip_is_annual"`
@@ -421,9 +407,6 @@ func GetWebUserInfo(credential *Credential) (result WebUserInfoResponse, err err
 type SiteUserInfo struct {
 	req.Get
 	*Credential
-
-	// APP 登录 Token
-	AccessKey string `api:"query,omitempty"`
 }
 
 func (SiteUserInfo) RawURL() string {
@@ -470,9 +453,6 @@ func GetSiteUserInfo(credential *Credential) (result SiteUserInfoResponse, err e
 type RealnameStatus struct {
 	req.Get
 	*Credential
-
-	// APP 登录 Token
-	AccessKey string `api:"query,omitempty"`
 }
 
 func (RealnameStatus) RawURL() string {
@@ -481,7 +461,7 @@ func (RealnameStatus) RawURL() string {
 
 type RealnameStatusResponse struct {
 	Error
-	TTL  int `json:"ttl"`
+
 	Data struct {
 		Status int `json:"status"`
 	} `json:"data"`
@@ -497,9 +477,6 @@ func GetRealnameStatus(credential *Credential) (result RealnameStatusResponse, e
 type ApplyStatus struct {
 	req.Get
 	*Credential
-
-	// APP 登录 Token
-	AccessKey string `api:"query,omitempty"`
 }
 
 func (ApplyStatus) RawURL() string {
@@ -508,7 +485,7 @@ func (ApplyStatus) RawURL() string {
 
 type ApplyStatusResponse struct {
 	Error
-	TTL  int `json:"ttl"`
+
 	Data struct {
 		Status   int    `json:"status"`
 		Remark   string `json:"remark"`
@@ -528,9 +505,6 @@ func GetApplyStatus(credential *Credential) (result ApplyStatusResponse, err err
 type CoinLog struct {
 	req.Get
 	*Credential
-
-	// APP 登录 Token
-	AccessKey string `api:"query,omitempty"`
 }
 
 func (CoinLog) RawURL() string {
@@ -539,7 +513,7 @@ func (CoinLog) RawURL() string {
 
 type CoinLogResponse struct {
 	Error
-	TTL  int `json:"ttl"`
+
 	Data struct {
 		List []struct {
 			Time   string `json:"time"`
@@ -561,9 +535,6 @@ type SignUpdate struct {
 	PostCSRF
 	*Credential
 
-	// APP 登录 Token
-	AccessKey string `api:"body,omitempty"`
-
 	// 要设置的签名内容 可为空
 	UserSign string `api:"body"`
 }
@@ -574,7 +545,6 @@ func (SignUpdate) RawURL() string {
 
 type SignUpdateResponse struct {
 	Error
-	TTL int `json:"ttl"`
 }
 
 // 修改个人签名
@@ -598,7 +568,7 @@ func (EXPLog) RawURL() string {
 
 type EXPLogResponse struct {
 	Error
-	TTL  int `json:"ttl"`
+
 	Data struct {
 		List []struct {
 			Delta  int    `json:"delta"`
@@ -630,7 +600,7 @@ func (MoralLog) RawURL() string {
 
 type MoralLogResponse struct {
 	Error
-	TTL  int `json:"ttl"`
+
 	Data struct {
 		Moral int           `json:"moral"`
 		List  []interface{} `json:"list"`
@@ -664,7 +634,7 @@ func (LoginNotice) RawURL() string {
 
 type LoginNoticeResponse struct {
 	Error
-	TTL  int `json:"ttl"`
+
 	Data struct {
 		MID        int    `json:"mid"`
 		DeviceName string `json:"device_name"`
@@ -696,7 +666,7 @@ func (LoginLog) RawURL() string {
 
 type LoginLogResponse struct {
 	Error
-	TTL  int `json:"ttl"`
+
 	Data struct {
 		Count int `json:"count"`
 		List  []struct {
@@ -730,7 +700,6 @@ func (CookieInfo) RawURL() string {
 
 type CookieInfoResponse struct {
 	Error
-	TTL  int `json:"ttl"` // 1
 	Data struct {
 		Refresh   bool  `json:"refresh"`   // true
 		Timestamp int64 `json:"timestamp"` // 1734963138171
@@ -823,7 +792,6 @@ func (CookieRefresh) RawURL() string {
 
 type CookieRefreshResponse struct {
 	Error
-	TTL  int `json:"ttl"` // 1
 	Data struct {
 		Status       int    `json:"status"`        // 0
 		Message      string `json:"message"`       // ""
@@ -860,7 +828,6 @@ func (ConfirmRefresh) RawURL() string {
 
 type ConfirmRefreshResponse struct {
 	Error
-	TTL int `json:"ttl"` // 1
 }
 
 // 确认更新
