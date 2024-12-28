@@ -1,6 +1,8 @@
 package api
 
 import (
+	"context"
+	"strconv"
 	"strings"
 
 	"github.com/Drelf2018/req"
@@ -24,7 +26,6 @@ func (AccInfo) RawURL() string {
 
 type AccInfoResponse struct {
 	Error
-	TTL  int `json:"ttl"` // 1
 	Data struct {
 		MID         int    `json:"mid"`           // 208259
 		Name        string `json:"name"`          // "陈睿"
@@ -85,16 +86,16 @@ type AccInfoResponse struct {
 			} `json:"avatar_icon"`
 		} `json:"vip"`
 		Pendant struct {
-			Pid               int    `json:"pid"`                 // 0
+			PID               int    `json:"pid"`                 // 0
 			Name              string `json:"name"`                // ""
 			Image             string `json:"image"`               // ""
 			Expire            int    `json:"expire"`              // 0
 			ImageEnhance      string `json:"image_enhance"`       // ""
 			ImageEnhanceFrame string `json:"image_enhance_frame"` // ""
-			NPid              int    `json:"n_pid"`               // 0
+			NPID              int    `json:"n_pid"`               // 0
 		} `json:"pendant"`
 		Nameplate struct {
-			Nid        int    `json:"nid"`         // 0
+			NID        int    `json:"nid"`         // 0
 			Name       string `json:"name"`        // ""
 			Image      string `json:"image"`       // ""
 			ImageSmall string `json:"image_small"` // ""
@@ -119,7 +120,7 @@ type AccInfoResponse struct {
 			URL           string `json:"url"`            // "https://live.bilibili.com/3394945?broadcast_type=0&is_room_feed=0"
 			Title         string `json:"title"`          // "初来报道，关注一下吧~"
 			Cover         string `json:"cover"`          // "https://i0.hdslb.com/bfs/live/59fc254c1f51a962dbf69ae85e4920f2f6fb8dcd.png"
-			Roomid        int    `json:"roomid"`         // 3394945
+			RoomID        int    `json:"roomid"`         // 3394945
 			RoundStatus   int    `json:"roundStatus"`    // 0
 			BroadcastType int    `json:"broadcast_type"` // 0
 			WatchedShow   struct {
@@ -194,7 +195,6 @@ func (Card) RawURL() string {
 
 type CardResponse struct {
 	Error
-	TTL  int `json:"ttl"` // 1
 	Data struct {
 		Card struct {
 			MID         string `json:"mid"`           // "208259"
@@ -224,16 +224,16 @@ type CardResponse struct {
 				NextExp      int `json:"next_exp"`      // 0
 			} `json:"level_info"`
 			Pendant struct {
-				Pid               int    `json:"pid"`                 // 0
+				PID               int    `json:"pid"`                 // 0
 				Name              string `json:"name"`                // ""
 				Image             string `json:"image"`               // ""
 				Expire            int    `json:"expire"`              // 0
 				ImageEnhance      string `json:"image_enhance"`       // ""
 				ImageEnhanceFrame string `json:"image_enhance_frame"` // ""
-				NPid              int    `json:"n_pid"`               // 0
+				NPID              int    `json:"n_pid"`               // 0
 			} `json:"pendant"`
 			Nameplate struct {
-				Nid        int    `json:"nid"`         // 0
+				NID        int    `json:"nid"`         // 0
 				Name       string `json:"name"`        // ""
 				Image      string `json:"image"`       // ""
 				ImageSmall string `json:"image_small"` // ""
@@ -302,7 +302,7 @@ type CardResponse struct {
 
 // 用户名片信息
 func GetCard(uid int, credential *Credential) (result CardResponse, err error) {
-	err = cli.Result(Card{MID: uid, Credential: credential, Photo: true}, &result)
+	err = cli.Result(Card{MID: uid, Photo: true, Credential: credential}, &result)
 	return
 }
 
@@ -318,7 +318,6 @@ func (MyInfo) RawURL() string {
 
 type MyInfoResponse struct {
 	Error
-	TTL  int `json:"ttl"` // 1
 	Data struct {
 		MID            int    `json:"mid"`            // 188888131
 		Name           string `json:"name"`           // "脆鲨12138"
@@ -367,16 +366,16 @@ type MyInfoResponse struct {
 			} `json:"avatar_icon"`
 		} `json:"vip"`
 		Pendant struct {
-			Pid               int    `json:"pid"`                 // 4820
+			PID               int    `json:"pid"`                 // 4820
 			Name              string `json:"name"`                // "七海演唱会"
 			Image             string `json:"image"`               // "https://i1.hdslb.com/bfs/garb/item/7061b098537482bb78242a16cba5d44b426b429d.png"
 			Expire            int    `json:"expire"`              // 0
 			ImageEnhance      string `json:"image_enhance"`       // "https://i1.hdslb.com/bfs/garb/item/7061b098537482bb78242a16cba5d44b426b429d.png"
 			ImageEnhanceFrame string `json:"image_enhance_frame"` // ""
-			NPid              int    `json:"n_pid"`               // 4820
+			NPID              int    `json:"n_pid"`               // 4820
 		} `json:"pendant"`
 		Nameplate struct {
-			Nid        int    `json:"nid"`         // 62
+			NID        int    `json:"nid"`         // 62
 			Name       string `json:"name"`        // "有爱大佬"
 			Image      string `json:"image"`       // "https://i0.hdslb.com/bfs/face/a10ee6b613e0d68d2dfdac8bbf71b94824e10408.png"
 			ImageSmall string `json:"image_small"` // "https://i0.hdslb.com/bfs/face/54f4c31ab9b1f1fa2c29dbbc967f66535699337e.png"
@@ -467,8 +466,7 @@ type CardMap struct {
 	req.Get
 	*Credential
 
-	// 目标用户的 UID 列表
-	// 每个成员间用 , 分隔
+	// 目标用户的 UID 列表 用(,)间隔
 	// 最多200个成员
 	UIDs string `api:"query"`
 }
@@ -479,7 +477,6 @@ func (CardMap) RawURL() string {
 
 type CardMapResponse struct {
 	Error
-	TTL  int `json:"ttl"` // 1
 	Data map[string]struct {
 		Face       string `json:"face"`         // "https://i1.hdslb.com/bfs/face/8802d20c0c0e7f4cc232543c619da14ec5bac76d.jpg"
 		FaceNft    int    `json:"face_nft"`     // 0
@@ -528,8 +525,8 @@ type CardMapResponse struct {
 }
 
 // 多用户详细信息字典
-func GetCardMap(credential *Credential, uid ...string) (result CardMapResponse, err error) {
-	err = cli.Result(CardMap{Credential: credential, UIDs: strings.Join(uid, ",")}, &result)
+func GetCardMap(uid []int, credential *Credential) (result CardMapResponse, err error) {
+	err = cli.Result(CardMap{UIDs: IntSliceToString(uid), Credential: credential}, &result)
 	return
 }
 
@@ -538,8 +535,7 @@ type CardSlice struct {
 	req.Get
 	*Credential
 
-	// 目标用户的 UID 列表
-	// 每个成员间用 , 分隔
+	// 目标用户的 UID 列表 用(,)间隔
 	// 最多 50 个成员
 	UIDs string `api:"query"`
 }
@@ -550,7 +546,6 @@ func (CardSlice) RawURL() string {
 
 type CardSliceResponse struct {
 	Error
-	TTL  int `json:"ttl"` // 1
 	Data []struct {
 		MID     int    `json:"mid"`     // 7706705
 		Name    string `json:"name"`    // "阿梓从小就很可爱"
@@ -563,8 +558,8 @@ type CardSliceResponse struct {
 }
 
 // 多用户详细信息切片
-func GetCardSlice(credential *Credential, uid ...string) (result CardSliceResponse, err error) {
-	err = cli.Result(CardSlice{Credential: credential, UIDs: strings.Join(uid, ",")}, &result)
+func GetCardSlice(uid []int, credential *Credential) (result CardSliceResponse, err error) {
+	err = cli.Result(CardSlice{UIDs: IntSliceToString(uid), Credential: credential}, &result)
 	return
 }
 
@@ -574,9 +569,6 @@ func GetCardSlice(credential *Credential, uid ...string) (result CardSliceRespon
 type RelationStat struct {
 	req.Get
 	*Credential
-
-	// APP 登录 Token
-	AccessKey string `api:"query,omitempty"`
 
 	// 目标用户 UID
 	Vmid int `api:"query"`
@@ -588,9 +580,8 @@ func (RelationStat) RawURL() string {
 
 type RelationStatResponse struct {
 	Error
-	TTL  int `json:"ttl"` // 1
 	Data struct {
-		Mid       int `json:"mid"`       // 434334701
+		MID       int `json:"mid"`       // 434334701
 		Following int `json:"following"` // 592
 		Whisper   int `json:"whisper"`   // 0
 		Black     int `json:"black"`     // 0
@@ -609,9 +600,6 @@ type UPStat struct {
 	req.Get
 	*Credential
 
-	// APP 登录 Token
-	AccessKey string `api:"query,omitempty"`
-
 	// 目标用户 UID
 	MID int `api:"query"`
 }
@@ -622,7 +610,6 @@ func (UPStat) RawURL() string {
 
 type UPStatResponse struct {
 	Error
-	TTL  int `json:"ttl"` // 1
 	Data struct {
 		Archive struct {
 			EnableVt int `json:"enable_vt"` // 0
@@ -674,7 +661,6 @@ func (UploadCount) RawURL() string {
 
 type UploadCountResponse struct {
 	Error
-	TTL  int `json:"ttl"` // 1
 	Data struct {
 		AllCount   int `json:"all_count"`   // 1018
 		DrawCount  int `json:"draw_count"`  // 0
@@ -691,10 +677,789 @@ func GetUploadCount(uid int) (result UploadCountResponse, err error) {
 
 // https://socialsisteryi.github.io/bilibili-API-collect/docs/user/relation.html
 
-// https://socialsisteryi.github.io/bilibili-API-collect/docs/user/space.html
+// 契约计划相关信息
+type ContractInfo struct {
+	// 目标用户是否为对方的契约者
+	IsContract bool `json:"is_contract"`
+
+	// 是否为目标用户的契约者
+	IsContractor bool `json:"is_contractor"`
+
+	// 对方成为目标用户的契约者的时间 秒级时间戳
+	// 仅当 IsContractor 项的值为 true 时才有此项
+	TS int `json:"ts"`
+
+	// 对方作为目标用户的契约者的属性
+	// (1)老粉
+	// 否则为原始粉丝
+	UserAttr int `json:"user_attr"`
+}
+
+// 认证信息
+type OfficialVerify struct {
+	// 用户认证类型
+	// (-1)无
+	// (0)UP 主认证
+	// (1)机构认证
+	Type int `json:"type"`
+
+	// 用户认证信息
+	Desc string `json:"desc"`
+}
+
+// 会员信息
+type VIP struct {
+	// 会员类型
+	// (0)无
+	// (1)月度大会员
+	// (2)年度以上大会员
+	VIPType int `json:"vipType"`
+
+	// 会员到期时间	毫秒级时间戳
+	VIPDueDate int64 `json:"vipDueDate"`
+
+	DueRemark    string `json:"dueRemark"`
+	AccessStatus int    `json:"accessStatus"`
+
+	// 大会员状态
+	// (0)无
+	// (1)有
+	VIPStatus int `json:"vipStatus"`
+
+	VIPStatusWarn string `json:"vipStatusWarn"`
+	ThemeType     int    `json:"themeType"`
+	Label         struct {
+		Path        string `json:"path"`
+		Text        string `json:"text"`
+		LabelTheme  string `json:"label_theme"`
+		TextColor   string `json:"text_color"`
+		BgStyle     int    `json:"bg_style"`
+		BgColor     string `json:"bg_color"`
+		BorderColor string `json:"border_color"`
+	} `json:"label"`
+	AvatarSubscript    int    `json:"avatar_subscript"`
+	NicknameColor      string `json:"nickname_color"`
+	AvatarSubscriptURL string `json:"avatar_subscript_url"`
+}
+
+// 直播信息
+type Live struct {
+	// 开播状态
+	// (0)未开播
+	// (1)已开播
+	LiveStatus int `json:"live_status"`
+
+	// 直播链接
+	JumpURL string `json:"jump_url"`
+}
+
+// 关系列表对象
+type RelationItem struct {
+	// 用户 UID
+	MID int64 `json:"mid"`
+
+	// 对方对于自己的关系属性
+	// (0)未关注
+	// (1)悄悄关注(现已下线)
+	// (2)已关注
+	// (6)已互粉
+	// (128)已拉黑
+	Attribute int `json:"attribute"`
+
+	// 对方关注目标用户时间
+	// 秒级时间戳 互关后刷新
+	Mtime int `json:"mtime"`
+
+	// 目标用户将对方分组到的 id
+	Tag []int `json:"tag"`
+
+	// 特别关注标志
+	// (0)否
+	// (1)是
+	Special int `json:"special"`
+
+	// 契约计划相关信息
+	ContractInfo ContractInfo `json:"contract_info"`
+
+	// 用户昵称
+	Uname string `json:"uname"`
+
+	// 用户头像 URL
+	Face string `json:"face"`
+
+	// 用户签名
+	Sign string `json:"sign"`
+
+	// 是否为 NFT 头像
+	// (0)非 NFT 头像
+	// (1)是 NFT 头像
+	FaceNFT int `json:"face_nft"`
+
+	// 认证信息
+	OfficialVerify OfficialVerify `json:"official_verify"`
+
+	// 会员信息
+	VIP VIP `json:"vip"`
+
+	// 直播信息
+	Live Live `json:"live"`
+
+	NameRender struct {
+	} `json:"name_render"`
+	NFTIcon    string `json:"nft_icon"`
+	RecReason  string `json:"rec_reason"`
+	TrackID    string `json:"track_id"`
+	FollowTime string `json:"follow_time"`
+}
+
+// 查询用户粉丝明细
+type Followers struct {
+	req.Get
+	*Credential
+
+	// 目标用户 UID
+	Vmid int `api:"query"`
+
+	// 分页页数
+	Pn int `api:"query:1"`
+
+	// 分页大小
+	Ps int `api:"query:50"`
+}
+
+func (Followers) RawURL() string {
+	return "/relation/followers"
+}
+
+type FollowersResponse struct {
+	Error
+	Data struct {
+		List      []RelationItem `json:"list"`
+		ReVersion int            `json:"re_version"` // 0
+		Total     int            `json:"total"`      // 1057249
+	} `json:"data"`
+}
+
+// 查询用户粉丝明细
+func GetFollowers(uid int, credential *Credential) (result FollowersResponse, err error) {
+	err = cli.Result(Followers{Vmid: uid, Credential: credential}, &result)
+	return
+}
+
+// 查询用户关注明细
+type RelationFollowings struct {
+	req.Get
+	*Credential
+
+	// 目标用户 UID
+	Vmid int `api:"query"`
+
+	// 排序方式 当目标用户为自己时有效
+	// ("")按照关注顺序排列
+	// ("attention")按照最常访问排列
+	OrderType string `api:"query,omitempty"`
+
+	// 分页页数
+	Pn int `api:"query:1"`
+
+	// 分页大小
+	Ps int `api:"query:50"`
+}
+
+func (RelationFollowings) RawURL() string {
+	return "/relation/followings"
+}
+
+func (api *RelationFollowings) Iter(ctx context.Context) func(yeild func(*RelationItem) bool) {
+	return func(yeild func(*RelationItem) bool) {
+		var result RelationFollowingsResponse
+		err := cli.ResultWithContext(ctx, api, &result)
+		if err != nil {
+			return
+		}
+		for len(result.Data.List) != 0 {
+			for _, item := range result.Data.List {
+				if !yeild(&item) {
+					return
+				}
+			}
+			api.Pn++
+			err = cli.Result(api, &result)
+			if err != nil {
+				return
+			}
+		}
+	}
+}
+
+type RelationFollowingsResponse struct {
+	Error
+	Data struct {
+		List      []RelationItem `json:"list"`
+		ReVersion int            `json:"re_version"` // 0
+		Total     int            `json:"total"`      // 207
+	} `json:"data"`
+}
+
+// 查询用户关注明细
+func GetRelationFollowings(uid int, credential *Credential) (result RelationFollowingsResponse, err error) {
+	err = cli.Result(RelationFollowings{Vmid: uid, Credential: credential}, &result)
+	return
+}
+
+// 搜索关注明细
+type FollowingsSearch struct {
+	req.Get
+	*Credential
+
+	// 目标用户 UID
+	Vmid int `api:"query"`
+
+	// 搜索关键词
+	Name string `api:"query"`
+
+	// 分页页数
+	Pn int `api:"query:1"`
+
+	// 分页大小
+	Ps int `api:"query:50"`
+}
+
+func (FollowingsSearch) RawURL() string {
+	return "/relation/followings/search"
+}
+
+type FollowingsSearchResponse struct {
+	Error
+	Data struct {
+		List  []RelationItem `json:"list"`
+		Total int            `json:"total"` // 1
+	} `json:"data"`
+}
+
+// 搜索关注明细
+func GetFollowingsSearch(uid int, name string, credential *Credential) (result FollowingsSearchResponse, err error) {
+	err = cli.Result(FollowingsSearch{Vmid: uid, Name: name, Credential: credential}, &result)
+	return
+}
+
+// 查询共同关注明细
+type SameFollowings struct {
+	req.Get
+	*Credential
+
+	// 目标用户 UID
+	Vmid int `api:"query"`
+
+	// 分页页数
+	Pn int `api:"query:1"`
+
+	// 分页大小
+	Ps int `api:"query:50"`
+}
+
+func (SameFollowings) RawURL() string {
+	return "/relation/same/followings"
+}
+
+type SameFollowingsResponse struct {
+	Error
+	Data struct {
+		List      []RelationItem `json:"list"`
+		ReVersion string         `json:"re_version"` // ""
+		Total     int            `json:"total"`      // 7
+	} `json:"data"`
+}
+
+// 查询共同关注明细
+func GetSameFollowings(uid int, credential *Credential) (result SameFollowingsResponse, err error) {
+	err = cli.Result(SameFollowings{Vmid: uid, Credential: credential}, &result)
+	return
+}
+
+// 查询悄悄关注明细
+type Whispers struct {
+	req.Get
+	*Credential
+}
+
+func (Whispers) RawURL() string {
+	return "/relation/whispers"
+}
+
+type WhispersResponse struct {
+	Error
+	Data struct {
+		List      []RelationItem `json:"list"`
+		ReVersion int            `json:"re_version"` // 0
+	} `json:"data"`
+}
+
+// 查询悄悄关注明细
+func GetWhispers(credential *Credential) (result WhispersResponse, err error) {
+	err = cli.Result(Whispers{Credential: credential}, &result)
+	return
+}
+
+// 查询互相关注明细
+type Friends struct {
+	req.Get
+	*Credential
+}
+
+func (Friends) RawURL() string {
+	return "/relation/friends"
+}
+
+type FriendsResponse struct {
+	Error
+	Data struct {
+		List      []RelationItem `json:"list"`
+		ReVersion int            `json:"re_version"` // 0
+	} `json:"data"`
+}
+
+// 查询互相关注明细
+func GetFriends(credential *Credential) (result FriendsResponse, err error) {
+	err = cli.Result(Friends{Credential: credential}, &result)
+	return
+}
+
+// 查询黑名单明细
+type Blacks struct {
+	req.Get
+	*Credential
+
+	// 分页页数
+	Pn int `api:"query:1"`
+
+	// 分页大小
+	Ps int `api:"query:50"`
+}
+
+func (Blacks) RawURL() string {
+	return "/relation/blacks"
+}
+
+type BlacksResponse struct {
+	Error
+	Data struct {
+		List      []RelationItem `json:"list"`
+		ReVersion int            `json:"re_version"` // 0
+		Total     int            `json:"total"`      // 87
+	} `json:"data"`
+}
+
+// 查询黑名单明细
+func GetBlacks(credential *Credential) (result BlacksResponse, err error) {
+	err = cli.Result(Blacks{Credential: credential}, &result)
+	return
+}
+
+// 操作用户关系
+type RelationModify struct {
+	PostCSRF
+	*Credential
+	// TODO
+}
+
+func (RelationModify) RawURL() string {
+	return "/relation/modify"
+}
+
+// 批量操作用户关系
+type BatchModify struct {
+	PostCSRF
+	*Credential
+	// TODO
+}
+
+func (BatchModify) RawURL() string {
+	return "/relation/batch/modify"
+}
+
+// 查询关系属性
+type QueryRelation struct {
+	// 目标用户 UID
+	MID int `json:"mid"`
+
+	// 关系属性
+	// (0)未关注
+	// (2)已关注
+	// (6)已互粉
+	// (128)已拉黑
+	Attribute int `json:"attribute"`
+
+	// 关注对方时间 秒级时间戳
+	Mtime int `json:"mtime"`
+
+	// 分组 id
+	Tag []int `json:"tag"`
+
+	// 特别关注标志
+	// (0)否
+	// (1)是
+	Special int `json:"special"`
+}
+
+// 查询用户与自己关系（仅关注）
+type Relation struct {
+	req.Get
+	*Credential
+
+	// 目标用户 UID
+	FID int `api:"query"`
+}
+
+func (Relation) RawURL() string {
+	return "/relation"
+}
+
+type RelationResponse struct {
+	Error
+	Data QueryRelation `json:"data"`
+}
+
+// 查询用户与自己关系（仅关注）
+func GetRelation(uid int, credential *Credential) (result RelationResponse, err error) {
+	err = cli.Result(Relation{FID: uid, Credential: credential}, &result)
+	return
+}
+
+// 查询用户与自己关系（互相关系）
+type AccRelation struct {
+	GetWBI
+	*Credential
+
+	// 目标用户 UID
+	MID int `api:"query"`
+}
+
+func (AccRelation) RawURL() string {
+	return "/space/wbi/acc/relation"
+}
+
+type AccRelationResponse struct {
+	Error
+	Data struct {
+		Relation   QueryRelation `json:"relation"`    // 目标用户对于当前用户的关系
+		BeRelation QueryRelation `json:"be_relation"` // 当前用户对于目标用户的关系
+	} `json:"data"`
+}
+
+// 查询用户与自己关系（互相关系）
+func GetAccRelation(uid int, credential *Credential) (result AccRelationResponse, err error) {
+	err = cli.Result(AccRelation{MID: uid, Credential: credential}, &result)
+	return
+}
+
+// 批量查询用户与自己关系
+type Relations struct {
+	req.Get
+	*Credential
+
+	// 目标用户 UID 用(,)间隔
+	FIDs string `api:"query"`
+}
+
+func (Relations) RawURL() string {
+	return "/relation/relations"
+}
+
+type RelationsResponse struct {
+	Error
+	Data map[string]QueryRelation `json:"data"`
+}
+
+// 批量查询用户与自己关系
+func GetRelations(uid []int, credential *Credential) (result RelationsResponse, err error) {
+	err = cli.Result(Relations{FIDs: IntSliceToString(uid), Credential: credential}, &result)
+	return
+}
+
+// 查询关注分组列表
+type Tags struct {
+	req.Get
+	*Credential
+}
+
+func (Tags) RawURL() string {
+	return "/relation/tags"
+}
+
+type TagsResponse struct {
+	Error
+	Data []struct {
+		TagID int    `json:"tagid"` // -10
+		Name  string `json:"name"`  // "特别关注"
+		Count int    `json:"count"` // 2
+		Tip   string `json:"tip"`   // "第一时间收到该分组下用户更新稿件的通知"
+	} `json:"data"`
+}
+
+// 查询关注分组列表
+func GetTags(credential *Credential) (result TagsResponse, err error) {
+	err = cli.Result(Tags{Credential: credential}, &result)
+	return
+}
+
+// 查询关注分组明细
+type Tag struct {
+	req.Get
+	*Credential
+
+	// 分组 id
+	TagID int `api:"query" req:"tagid"`
+
+	// 排序方式 当目标用户为自己时有效
+	// ("")按照关注顺序排列
+	// ("attention")按照最常访问排列
+	OrderType string `api:"query,omitempty"`
+
+	// 分页页数
+	Pn int `api:"query:1"`
+
+	// 分页大小
+	Ps int `api:"query:20"`
+}
+
+func (Tag) RawURL() string {
+	return "/relation/tag"
+}
+
+type TagResponse struct {
+	Error
+	Data []RelationItem `json:"data"`
+}
+
+// 查询关注分组明细
+func GetTag(tagid int, credential *Credential) (result TagResponse, err error) {
+	err = cli.Result(Tag{TagID: tagid, Credential: credential}, &result)
+	return
+}
+
+// 查询目标用户所在的分组
+type User struct {
+	req.Get
+	*Credential
+
+	// 目标用户 UID
+	FID int `api:"query"`
+}
+
+func (User) RawURL() string {
+	return "/relation/tag/user"
+}
+
+type UserResponse struct {
+	Error
+	Data map[string]string `json:"data"`
+}
+
+// 查询目标用户所在的分组
+func GetUser(uid int, credential *Credential) (result UserResponse, err error) {
+	err = cli.Result(User{FID: uid, Credential: credential}, &result)
+	return
+}
+
+// 查询所有特别关注 mid
+type Special struct {
+	req.Get
+	*Credential
+}
+
+func (Special) RawURL() string {
+	return "/relation/tag/special"
+}
+
+type SpecialResponse struct {
+	Error
+	Data []int `json:"data"`
+}
+
+// 查询所有特别关注 mid
+func GetSpecial(credential *Credential) (result SpecialResponse, err error) {
+	err = cli.Result(Special{Credential: credential}, &result)
+	return
+}
+
+// 创建分组
+type Create struct {
+	PostCSRF
+	*Credential
+
+	// 分组名 最长 16 字符
+	Tag string `api:"body"`
+}
+
+func (Create) RawURL() string {
+	return "/relation/tag/create"
+}
+
+type CreateResponse struct {
+	Error
+	Data struct {
+		TagID int `json:"tagid"`
+	} `json:"data"`
+}
+
+// 创建分组
+func PostCreate(tag string, credential *Credential) (result CreateResponse, err error) {
+	err = cli.Result(Create{Tag: tag, Credential: credential}, &result)
+	return
+}
+
+// 重命名分组
+type Update struct {
+	PostCSRF
+	*Credential
+
+	// 分组 id
+	TagID int `api:"body" req:"tagid"`
+
+	// 新分组名 最长 16 字符
+	Name string `api:"body"`
+}
+
+func (Update) RawURL() string {
+	return "/relation/tag/update"
+}
+
+type UpdateResponse struct {
+	Error
+}
+
+// 重命名分组
+func PostUpdate(tag int, name string, credential *Credential) (result UpdateResponse, err error) {
+	err = cli.Result(Update{TagID: tag, Name: name, Credential: credential}, &result)
+	return
+}
+
+// 删除分组
+type Del struct {
+	PostCSRF
+	*Credential
+
+	// 分组 id
+	TagID int `api:"body" req:"tagid"`
+}
+
+func (Del) RawURL() string {
+	return "/relation/tag/del"
+}
+
+type DelResponse struct {
+	Error
+}
+
+// 删除分组
+func PostDel(tagid int, credential *Credential) (result DelResponse, err error) {
+	err = cli.Result(Del{TagID: tagid, Credential: credential}, &result)
+	return
+}
+
+// 修改分组成员
+//
+// 如需删除分组中的成员 请将 tagids 设为 0 即移动至默认分组 而不是取关
+type AddUsers struct {
+	PostCSRF
+	*Credential
+
+	// 目标用户 UID 用(,)间隔
+	FIDs string `api:"query"`
+
+	// 分组 id 列表 用(,)间隔
+	TagIDs string `api:"query" req:"tagids"`
+}
+
+func (AddUsers) RawURL() string {
+	return "/relation/tags/addUsers"
+}
+
+type AddUsersResponse struct {
+	Error
+}
+
+// 将数组转为字符串
+func IntSliceToString(num []int) string {
+	s := make([]string, 0, len(num))
+	for _, i := range num {
+		s = append(s, strconv.Itoa(i))
+	}
+	return strings.Join(s, ",")
+}
+
+// 修改分组成员
+//
+// 如需删除分组中的成员 请将 tagids 设为 0 即移动至默认分组 而不是取关
+func PostAddUsers(uid, tagid []int, credential *Credential) (result AddUsersResponse, err error) {
+	err = cli.Result(AddUsers{FIDs: IntSliceToString(uid), TagIDs: IntSliceToString(tagid), Credential: credential}, &result)
+	return
+}
+
+// 复制关注到分组
+type CopyUsers struct {
+	PostCSRF
+	*Credential
+
+	// 待复制用户 UID 用(,)间隔
+	FIDs string `api:"query"`
+
+	// 目标分组 id 列表 用(,)间隔
+	TagIDs string `api:"query" req:"tagids"`
+}
+
+func (CopyUsers) RawURL() string {
+	return "/relation/tags/copyUsers"
+}
+
+type CopyUsersResponse struct {
+	Error
+}
+
+// 复制关注到分组
+func PostCopyUsers(uid, tagid []int, credential *Credential) (result CopyUsersResponse, err error) {
+	err = cli.Result(CopyUsers{FIDs: IntSliceToString(uid), TagIDs: IntSliceToString(tagid), Credential: credential}, &result)
+	return
+}
+
+// 移动关注到分组
+type MoveUsers struct {
+	PostCSRF
+	*Credential
+
+	// 原分组 id 列表 用(,)间隔
+	BeforeTagIDs string `api:"body" req:"beforeTagids"`
+
+	// 新分组 id 列表 用(,)间隔
+	AfterTagIDs string `api:"body" req:"afterTagids"`
+
+	// 待移动用户 UID 用(,)间隔
+	FIDs string `api:"query"`
+}
+
+func (MoveUsers) RawURL() string {
+	return "/relation/tags/moveUsers"
+}
+
+type MoveUsersResponse struct {
+	Error
+}
+
+// 移动关注到分组
+func PostMoveUsers(uid, beforeTagid, afterTagid []int, credential *Credential) (result MoveUsersResponse, err error) {
+	err = cli.Result(MoveUsers{
+		BeforeTagIDs: IntSliceToString(beforeTagid),
+		AfterTagIDs:  IntSliceToString(afterTagid),
+		FIDs:         IntSliceToString(uid),
+		Credential:   credential,
+	}, &result)
+	return
+}
 
 // https://socialsisteryi.github.io/bilibili-API-collect/docs/user/medals.html
 
+// 指定用户的所有粉丝勋章信息
 type MedalWall struct {
 	req.Get
 	*Credential
@@ -709,7 +1474,6 @@ func (MedalWall) RawURL() string {
 
 type MedalWallResponse struct {
 	Error
-	TTL  int `json:"ttl"` // 1
 	Data struct {
 		List []struct {
 			MedalInfo struct {
@@ -744,7 +1508,7 @@ type MedalWallResponse struct {
 				ID                 int    `json:"id"`                    // 13139
 				Typ                int    `json:"typ"`                   // 0
 				IsLight            int    `json:"is_light"`              // 1
-				Ruid               int    `json:"ruid"`                  // 7706705
+				RUID               int    `json:"ruid"`                  // 7706705
 				GuardLevel         int    `json:"guard_level"`           // 3
 				Score              int    `json:"score"`                 // 0
 				GuardIcon          string `json:"guard_icon"`            // "https://i0.hdslb.com/bfs/live/143f5ec3003b4080d1b5f817a9efdca46d631945.png"
@@ -767,7 +1531,462 @@ type MedalWallResponse struct {
 	} `json:"data"`
 }
 
+// 指定用户的所有粉丝勋章信息
 func GetMedalWall(uid int, credential *Credential) (result MedalWallResponse, err error) {
 	err = cli.Result(MedalWall{TargetID: uid, Credential: credential}, &result)
 	return
 }
+
+// https://socialsisteryi.github.io/bilibili-API-collect/docs/user/space.html
+
+// 视频信息
+type VideoInfo struct {
+	AID       int    `json:"aid"`       // 78090377
+	Videos    int    `json:"videos"`    // 1
+	TID       int    `json:"tid"`       // 47
+	Tname     string `json:"tname"`     // "同人·手书"
+	Copyright int    `json:"copyright"` // 1
+	Pic       string `json:"pic"`       // "http://i2.hdslb.com/bfs/archive/7fe8272ef4c90d07ba2dba968638392f8d5bf490.jpg"
+	Title     string `json:"title"`     // "【七海】七海的偶像宣言／私、アイドル宣言【手书PV】"
+	Pubdate   int    `json:"pubdate"`   // 1575540036
+	Ctime     int    `json:"ctime"`     // 1575483142
+	Desc      string `json:"desc"`      // "本家：sm32825363 ...
+	State     int    `json:"state"`     // 0
+	Attribute int    `json:"attribute"` // 16793984
+	Duration  int    `json:"duration"`  // 268
+	Rights    struct {
+		Bp            int `json:"bp"`              // 0
+		Elec          int `json:"elec"`            // 0
+		Download      int `json:"download"`        // 0
+		Movie         int `json:"movie"`           // 0
+		Pay           int `json:"pay"`             // 0
+		Hd5           int `json:"hd5"`             // 1
+		NoReprint     int `json:"no_reprint"`      // 1
+		Autoplay      int `json:"autoplay"`        // 1
+		UgcPay        int `json:"ugc_pay"`         // 0
+		IsCooperation int `json:"is_cooperation"`  // 1
+		UgcPayPreview int `json:"ugc_pay_preview"` // 0
+		NoBackground  int `json:"no_background"`   // 0
+		ArcPay        int `json:"arc_pay"`         // 0
+		PayFreeWatch  int `json:"pay_free_watch"`  // 0
+	} `json:"rights"`
+	Owner struct {
+		MID  int    `json:"mid"`  // 434334701
+		Name string `json:"name"` // "七海Nana7mi"
+		Face string `json:"face"` // "https://i2.hdslb.com/bfs/face/3adb26401cfab0fe6b1a0d5b2c09220499108d64.jpg"
+	} `json:"owner"`
+	Stat struct {
+		AID      int `json:"aid"`      // 78090377
+		View     int `json:"view"`     // 403958
+		Danmaku  int `json:"danmaku"`  // 1325
+		Reply    int `json:"reply"`    // 1181
+		Favorite int `json:"favorite"` // 10626
+		Coin     int `json:"coin"`     // 13492
+		Share    int `json:"share"`    // 1273
+		NowRank  int `json:"now_rank"` // 0
+		HisRank  int `json:"his_rank"` // 0
+		Like     int `json:"like"`     // 18030
+		Dislike  int `json:"dislike"`  // 0
+		Vt       int `json:"vt"`       // 518998
+		Vv       int `json:"vv"`       // 403958
+	} `json:"stat"`
+	Dynamic   string `json:"dynamic"` // "脆脆鲨组从我关注数到1w的时候就开始企划的手书 ...
+	CID       int    `json:"cid"`     // 133606284
+	Dimension struct {
+		Width  int `json:"width"`  // 1920
+		Height int `json:"height"` // 1080
+		Rotate int `json:"rotate"` // 0
+	} `json:"dimension"`
+	ShortLinkV2      string `json:"short_link_v2"`     // "https://b23.tv/BV1vJ411B7ng"
+	VtDisplay        string `json:"vt_display"`        // "51.9万"
+	Cover43          string `json:"cover43"`           // ""
+	TIDv2            int    `json:"tidv2"`             // 2020
+	Tnamev2          string `json:"tnamev2"`           // "翻唱"
+	BVID             string `json:"bvid"`              // "BV1vJ411B7ng"
+	Reason           string `json:"reason"`            // ""
+	InterVideo       bool   `json:"inter_video"`       // false
+	IsChargingArc    bool   `json:"is_charging_arc"`   // false
+	ElecArcType      int    `json:"elec_arc_type"`     // 0
+	EnableVt         int    `json:"enable_vt"`         // 0
+	PlaybackPosition int    `json:"playback_position"` // 0
+	IsSelfView       bool   `json:"is_self_view"`      // false
+}
+
+// 查询用户置顶视频
+type Arc struct {
+	req.Get
+
+	// 目标用户 UID
+	Vmid int `api:"query"`
+}
+
+func (Arc) RawURL() string {
+	return "/space/top/arc"
+}
+
+type ArcResponse struct {
+	Error
+	Data VideoInfo `json:"data"`
+}
+
+// 查询用户置顶视频
+func GetArc(uid int) (result ArcResponse, err error) {
+	err = cli.Result(Arc{Vmid: uid}, &result)
+	return
+}
+
+// 设置置顶视频
+type Set struct {
+	PostCSRF
+	*Credential
+
+	// 置顶目标稿件 avid
+	// 与 bvid 任选一个
+	AID int `api:"body"`
+
+	// 置顶目标稿件 bvid
+	// 与 avid 任选一个
+	BVID string `api:"body" req:"bvid"`
+
+	//置顶视频备注 最大 40 字符
+	Reason string `api:"body"`
+}
+
+func (Set) RawURL() string {
+	return "/space/top/arc/set"
+}
+
+type SetResponse struct {
+	Error
+}
+
+// 设置置顶视频
+func PostSet(bvid, reason string, credential *Credential) (result SetResponse, err error) {
+	err = cli.Result(Set{BVID: bvid, Reason: reason, Credential: credential}, &result)
+	return
+}
+
+// 取消置顶视频
+type Cancel struct {
+	PostCSRF
+	*Credential
+}
+
+func (Cancel) RawURL() string {
+	return "/space/top/arc/cancel"
+}
+
+type CancelResponse struct {
+	Error
+}
+
+// 取消置顶视频
+func PostCancel(credential *Credential) (result CancelResponse, err error) {
+	err = cli.Result(Cancel{Credential: credential}, &result)
+	return
+}
+
+// 查询用户代表作视频列表
+type Masterpiece struct {
+	req.Get
+
+	// 目标用户 UID
+	Vmid int `api:"query"`
+}
+
+func (Masterpiece) RawURL() string {
+	return "/space/masterpiece"
+}
+
+type MasterpieceResponse struct {
+	Error
+	Data []VideoInfo `json:"data"`
+}
+
+// 查询用户代表作视频列表
+func GetMasterpiece(uid int) (result MasterpieceResponse, err error) {
+	err = cli.Result(Masterpiece{Vmid: uid}, &result)
+	return
+}
+
+// 添加代表作视频
+type Add struct {
+	PostCSRF
+	*Credential
+
+	// 置顶目标稿件 avid
+	// 与 bvid 任选一个
+	AID int `api:"body"`
+
+	// 置顶目标稿件 bvid
+	// 与 avid 任选一个
+	BVID string `api:"body" req:"bvid"`
+
+	//置顶视频备注 最大 40 字符
+	Reason string `api:"body"`
+}
+
+func (Add) RawURL() string {
+	return "/space/masterpiece/add"
+}
+
+type AddResponse struct {
+	Error
+}
+
+// 添加代表作视频
+func PostAdd(bvid, reason string, credential *Credential) (result AddResponse, err error) {
+	err = cli.Result(Add{BVID: bvid, Reason: reason, Credential: credential}, &result)
+	return
+}
+
+// 删除代表作视频
+type MasterpieceCancel struct {
+	PostCSRF
+	*Credential
+
+	// 取消置顶稿件 avid
+	// 与 bvid 任选一个
+	AID int `api:"body"`
+
+	// 取消置顶稿件 bvid
+	// 与 avid 任选一个
+	BVID string `api:"body" req:"bvid"`
+}
+
+func (MasterpieceCancel) RawURL() string {
+	return "/space/masterpiece/cancel"
+}
+
+type MasterpieceCancelResponse struct {
+	Error
+}
+
+// 删除代表作视频
+func PostMasterpieceCancel(bvid string, credential *Credential) (result MasterpieceCancelResponse, err error) {
+	err = cli.Result(MasterpieceCancel{BVID: bvid, Credential: credential}, &result)
+	return
+}
+
+// 查看用户个人 TAG
+type AccTags struct {
+	req.Get
+
+	// 用户 UID
+	MID int `api:"query"`
+}
+
+func (AccTags) RawURL() string {
+	return "/space/acc/tags"
+}
+
+type AccTagsResponse struct {
+	Error
+	Data []struct {
+		MID  int      `json:"mid"` // 434334701
+		Tags []string `json:"tags"`
+	} `json:"data"`
+}
+
+// 查看用户个人 TAG
+func GetAccTags(uid int) (result AccTagsResponse, err error) {
+	err = cli.Result(AccTags{MID: uid}, &result)
+	return
+}
+
+// 修改个人 TAG
+type TagsSet struct {
+	PostCSRF
+	*Credential
+
+	// 要设置的 TAG 内容 用(,)间隔
+	Tags string `api:"body"`
+}
+
+func (TagsSet) RawURL() string {
+	return "/space/acc/tags/set"
+}
+
+type TagsSetResponse struct {
+	Error
+}
+
+// 修改个人 TAG
+func PostTagsSet(tags []string, credential *Credential) (result TagsSetResponse, err error) {
+	err = cli.Result(TagsSet{Tags: strings.Join(tags, ","), Credential: credential}, &result)
+	return
+}
+
+// 查看用户空间公告
+type Notice struct {
+	req.Get
+
+	// 用户 UID
+	MID int `api:"query"`
+}
+
+func (Notice) RawURL() string {
+	return "/space/notice"
+}
+
+type NoticeResponse struct {
+	Error
+	Data string `json:"data"` // "新浪微博：七海Nana7mi"
+}
+
+// 查看用户空间公告
+func GetNotice(uid int) (result NoticeResponse, err error) {
+	err = cli.Result(Notice{MID: uid}, &result)
+	return
+}
+
+// 修改空间公告
+type NoticeSet struct {
+	PostCSRF
+	*Credential
+
+	// 要设置的公告内容
+	Notice string `api:"body"`
+}
+
+func (NoticeSet) RawURL() string {
+	return "/space/notice/set"
+}
+
+type NoticeSetResponse struct {
+	Error
+}
+
+// 修改空间公告
+func PostNoticeSet(notice string, credential *Credential) (result NoticeSetResponse, err error) {
+	err = cli.Result(NoticeSet{Notice: notice, Credential: credential}, &result)
+	return
+}
+
+// 查询空间设置
+type Settings struct {
+	req.Get
+
+	// 用户 UID
+	MID int `api:"query"`
+}
+
+func (Settings) RawURL() string {
+	return "http://space.bilibili.com/ajax/settings/getSettings"
+}
+
+type SettingsResponse struct {
+	Status bool `json:"status"` // true
+	Data   struct {
+		Privacy struct {
+			Bangumi           int `json:"bangumi"`             // 0
+			Bbq               int `json:"bbq"`                 // 1
+			Channel           int `json:"channel"`             // 1
+			ChargeVideo       int `json:"charge_video"`        // 1
+			CloseSpaceMedal   int `json:"close_space_medal"`   // 0
+			CoinsVideo        int `json:"coins_video"`         // 1
+			Comic             int `json:"comic"`               // 0
+			DisableFollowing  int `json:"disable_following"`   // 1
+			DisableShowFans   int `json:"disable_show_fans"`   // 0
+			DisableShowNft    int `json:"disable_show_nft"`    // 0
+			DisableShowSchool int `json:"disable_show_school"` // 0
+			DressUp           int `json:"dress_up"`            // 1
+			FavVideo          int `json:"fav_video"`           // 0
+			Groups            int `json:"groups"`              // 0
+			LessonVideo       int `json:"lesson_video"`        // 1
+			LikesVideo        int `json:"likes_video"`         // 1
+			LivePlayback      int `json:"live_playback"`       // 0
+			OnlyShowWearing   int `json:"only_show_wearing"`   // 1
+			PlayedGame        int `json:"played_game"`         // 0
+			Tags              int `json:"tags"`                // 0
+			UserInfo          int `json:"user_info"`           // 1
+		} `json:"privacy"`
+		ShowNftSwitch bool `json:"show_nft_switch"` // true
+		IndexOrder    []struct {
+			ID   int    `json:"id"`   // 1
+			Name string `json:"name"` // "我的稿件"
+		} `json:"index_order"`
+		Theme               string `json:"theme"`                  // "default"
+		ThemePreviewImgPath string `json:"theme_preview_img_path"` // ""
+		Toutu               struct {
+			Sid          int    `json:"sid"`           // 1
+			Expire       int64  `json:"expire"`        // 2996777597
+			SImg         string `json:"s_img"`         // "bfs/space/768cc4fd97618cf589d23c2711a1d1a729f42235.png"
+			LImg         string `json:"l_img"`         // "bfs/space/cb1c3ef50e22b6096fde67febe863494caefebad.png"
+			AndroidImg   string `json:"android_img"`   // ""
+			IphoneImg    string `json:"iphone_img"`    // ""
+			IpadImg      string `json:"ipad_img"`      // ""
+			ThumbnailImg string `json:"thumbnail_img"` // ""
+			Platform     int    `json:"platform"`      // 0
+		} `json:"toutu"`
+	} `json:"data"`
+}
+
+// 查询空间设置
+func GetSettings(uid int) (result SettingsResponse, err error) {
+	err = cli.Result(Settings{MID: uid}, &result)
+	return
+}
+
+// 查询可用头图列表 (Web端)
+type TopPhotoList struct {
+	req.Get
+
+	// 用户 UID
+	MID int `api:"query"`
+}
+
+func (TopPhotoList) RawURL() string {
+	return "https://space.bilibili.com/ajax/topphoto/getlist"
+}
+
+type TopPhotoListResponse struct {
+	Status bool `json:"status"` // true
+	Data   []struct {
+		ID           int    `json:"id"`            // 1
+		ProductName  string `json:"product_name"`  // "bilibili春"
+		Price        int    `json:"price"`         // 0
+		CoinType     int    `json:"coin_type"`     // 0
+		VipFree      int    `json:"vip_free"`      // 0
+		SImg         string `json:"s_img"`         // "bfs/space/768cc4fd97618cf589d23c2711a1d1a729f42235.png"
+		LImg         string `json:"l_img"`         // "bfs/space/cb1c3ef50e22b6096fde67febe863494caefebad.png"
+		ThumbnailImg string `json:"thumbnail_img"` // ""
+		SortNum      int    `json:"sort_num"`      // 19
+		IsDisable    int    `json:"is_disable"`    // 0
+		Expire       int64  `json:"expire"`        // 2890206564
+		Had          int    `json:"had"`           // 1
+	} `json:"data"`
+}
+
+// 查询可用头图列表 (Web端)
+func GetTopPhotoList(uid int) (result TopPhotoListResponse, err error) {
+	err = cli.Result(TopPhotoList{MID: uid}, &result)
+	return
+}
+
+// 设置空间头图 (Web端)
+type SetToutu struct {
+	PostCSRF
+	*Credential
+
+	// 头图 ID
+	ID int `api:"body"`
+}
+
+func (SetToutu) RawURL() string {
+	return "https://space.bilibili.com/ajax/settings/setToutu"
+}
+
+type SetToutuResponse struct {
+	Status bool   `json:"status"`
+	Data   string `json:"data"`
+}
+
+// 设置空间头图 (Web端)
+func PostSetToutu(id int, credential *Credential) (result SetToutuResponse, err error) {
+	err = cli.Result(SetToutu{ID: id, Credential: credential}, &result)
+	return
+}
+
+// 做吐了 先做到这里吧
+// https://socialsisteryi.github.io/bilibili-API-collect/docs/user/space.html#%E8%AE%BE%E7%BD%AE%E7%A9%BA%E9%97%B4%E5%A4%B4%E5%9B%BE-web%E7%AB%AF
