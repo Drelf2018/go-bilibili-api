@@ -811,6 +811,10 @@ type RelationItem struct {
 	FollowTime string `json:"follow_time"`
 }
 
+func (r RelationItem) String() string {
+	return r.Uname
+}
+
 // 查询用户粉丝明细
 type Followers struct {
 	req.Get
@@ -819,7 +823,7 @@ type Followers struct {
 	// 目标用户 UID
 	Vmid int `api:"query"`
 
-	// 分页页数
+	// 分页页数 仅可查看前 1000 名粉丝
 	Pn int `api:"query:1"`
 
 	// 分页大小
@@ -830,6 +834,17 @@ func (Followers) RawURL() string {
 	return "/relation/followers"
 }
 
+func (api *Followers) ReadPage(v any) (int, error) {
+	if api.Pn == 0 {
+		api.Pn = 1
+	}
+	err := cli.Result(api, v)
+	api.Pn++
+	return api.Pn - 1, err
+}
+
+var _ PageReader = (*Followers)(nil)
+
 type FollowersResponse struct {
 	Error
 	Data struct {
@@ -838,6 +853,12 @@ type FollowersResponse struct {
 		Total     int            `json:"total"`      // 1057249
 	} `json:"data"`
 }
+
+func (r FollowersResponse) More() bool {
+	return len(r.Data.List) != 0
+}
+
+var _ Morer = (*FollowersResponse)(nil)
 
 // 查询用户粉丝明细
 func GetFollowers(uid int, credential *Credential) (result FollowersResponse, err error) {
@@ -869,6 +890,17 @@ func (RelationFollowings) RawURL() string {
 	return "/relation/followings"
 }
 
+func (api *RelationFollowings) ReadPage(v any) (int, error) {
+	if api.Pn == 0 {
+		api.Pn = 1
+	}
+	err := cli.Result(api, v)
+	api.Pn++
+	return api.Pn - 1, err
+}
+
+var _ PageReader = (*RelationFollowings)(nil)
+
 type RelationFollowingsResponse struct {
 	Error
 	Data struct {
@@ -877,6 +909,12 @@ type RelationFollowingsResponse struct {
 		Total     int            `json:"total"`      // 207
 	} `json:"data"`
 }
+
+func (r RelationFollowingsResponse) More() bool {
+	return len(r.Data.List) != 0
+}
+
+var _ Morer = (*RelationFollowingsResponse)(nil)
 
 // 查询用户关注明细
 func GetRelationFollowings(uid int, credential *Credential) (result RelationFollowingsResponse, err error) {
@@ -906,6 +944,17 @@ func (FollowingsSearch) RawURL() string {
 	return "/relation/followings/search"
 }
 
+func (api *FollowingsSearch) ReadPage(v any) (int, error) {
+	if api.Pn == 0 {
+		api.Pn = 1
+	}
+	err := cli.Result(api, v)
+	api.Pn++
+	return api.Pn - 1, err
+}
+
+var _ PageReader = (*FollowingsSearch)(nil)
+
 type FollowingsSearchResponse struct {
 	Error
 	Data struct {
@@ -913,6 +962,12 @@ type FollowingsSearchResponse struct {
 		Total int            `json:"total"` // 1
 	} `json:"data"`
 }
+
+func (r FollowingsSearchResponse) More() bool {
+	return len(r.Data.List) != 0
+}
+
+var _ Morer = (*FollowingsSearchResponse)(nil)
 
 // 搜索关注明细
 func GetFollowingsSearch(uid int, name string, credential *Credential) (result FollowingsSearchResponse, err error) {
@@ -939,6 +994,17 @@ func (SameFollowings) RawURL() string {
 	return "/relation/same/followings"
 }
 
+func (api *SameFollowings) ReadPage(v any) (int, error) {
+	if api.Pn == 0 {
+		api.Pn = 1
+	}
+	err := cli.Result(api, v)
+	api.Pn++
+	return api.Pn - 1, err
+}
+
+var _ PageReader = (*SameFollowings)(nil)
+
 type SameFollowingsResponse struct {
 	Error
 	Data struct {
@@ -947,6 +1013,12 @@ type SameFollowingsResponse struct {
 		Total     int            `json:"total"`      // 7
 	} `json:"data"`
 }
+
+func (r SameFollowingsResponse) More() bool {
+	return len(r.Data.List) != 0
+}
+
+var _ Morer = (*SameFollowingsResponse)(nil)
 
 // 查询共同关注明细
 func GetSameFollowings(uid int, credential *Credential) (result SameFollowingsResponse, err error) {
@@ -1018,6 +1090,17 @@ func (Blacks) RawURL() string {
 	return "/relation/blacks"
 }
 
+func (api *Blacks) ReadPage(v any) (int, error) {
+	if api.Pn == 0 {
+		api.Pn = 1
+	}
+	err := cli.Result(api, v)
+	api.Pn++
+	return api.Pn - 1, err
+}
+
+var _ PageReader = (*Blacks)(nil)
+
 type BlacksResponse struct {
 	Error
 	Data struct {
@@ -1026,6 +1109,12 @@ type BlacksResponse struct {
 		Total     int            `json:"total"`      // 87
 	} `json:"data"`
 }
+
+func (r BlacksResponse) More() bool {
+	return len(r.Data.List) != 0
+}
+
+var _ Morer = (*BlacksResponse)(nil)
 
 // 查询黑名单明细
 func GetBlacks(credential *Credential) (result BlacksResponse, err error) {
@@ -1204,10 +1293,27 @@ func (Tag) RawURL() string {
 	return "/relation/tag"
 }
 
+func (api *Tag) ReadPage(v any) (int, error) {
+	if api.Pn == 0 {
+		api.Pn = 1
+	}
+	err := cli.Result(api, v)
+	api.Pn++
+	return api.Pn - 1, err
+}
+
+var _ PageReader = (*Tag)(nil)
+
 type TagResponse struct {
 	Error
 	Data []RelationItem `json:"data"`
 }
+
+func (r TagsResponse) More() bool {
+	return len(r.Data) != 0
+}
+
+var _ Morer = (*TagsResponse)(nil)
 
 // 查询关注分组明细
 func GetTag(tagid int, credential *Credential) (result TagResponse, err error) {

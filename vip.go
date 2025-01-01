@@ -512,6 +512,14 @@ func (VIPPointList) RawURL() string {
 	return "/vip_point/list"
 }
 
+func (api *VIPPointList) ReadPage(v any) (int, error) {
+	err := cli.Result(api, v)
+	api.Pn++
+	return api.Pn - 1, err
+}
+
+var _ PageReader = (*VIPPointList)(nil)
+
 type VIPPointListResponse struct {
 	Error
 	Data struct {
@@ -525,6 +533,12 @@ type VIPPointListResponse struct {
 		} `json:"big_point_list"`
 	} `json:"data"`
 }
+
+func (r VIPPointListResponse) More() bool {
+	return len(r.Data.BigPointList) != 0
+}
+
+var _ Morer = (*VIPPointListResponse)(nil)
 
 // 大积分改变记录
 func GetVIPPointList(credential *Credential) (result VIPPointListResponse, err error) {
