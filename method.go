@@ -20,10 +20,15 @@ import (
 	"github.com/Drelf2018/req"
 )
 
+// 先对各个参数的名称规范化一下
+// 在对查询参数的验证时可能用到两个参数名为 w_rid 和 w_webid
+// 这两个参数的值在网页 js 中变量名为 mixin_key 和 access_id
+// 因此本库中将以 MixinKey 和 AccessID 作为命名方式
+
 // 检查 accessID 和 mixinKey 的间隔
 //
 // 每次发起请求时若用到了这两个参数，就会检查是否太久未更新，如果超出这个间隔则会自动更新一次
-var CheckInterval time.Duration = 10 * time.Minute
+var CheckInterval time.Duration = time.Hour
 
 var accessID string
 
@@ -75,7 +80,7 @@ func UpdateAccessID() error {
 //
 // 无法保证一定可用，因为可能在上次检查后服务端就刷新了
 func GetAccessID() (string, error) {
-	if accessID == "" || time.Since(accessIDUpdateTime) > CheckInterval || time.Now().Day() != accessIDUpdateTime.Day() {
+	if accessID == "" || time.Since(accessIDUpdateTime) > CheckInterval {
 		err := UpdateAccessID()
 		if err != nil {
 			return "", err
@@ -84,14 +89,14 @@ func GetAccessID() (string, error) {
 	return accessID, nil
 }
 
-type NeedAccess interface {
-	NeedAccess()
+type NeedAccessID interface {
+	NeedAccessID()
 }
 
 // 对于需要添加 access_id 的接口 只需要将 AccessID 嵌入结构体即可
 type AccessID struct{}
 
-func (AccessID) NeedAccess() {}
+func (AccessID) NeedAccessID() {}
 
 var mixinKey string
 
@@ -146,7 +151,7 @@ func UpdateMixinKey() error {
 //
 // 无法保证一定可用，因为可能在上次检查后服务端就刷新了
 func GetMixinKey() (string, error) {
-	if mixinKey == "" || time.Since(mixinKeyUpdateTime) > CheckInterval || time.Now().Day() != mixinKeyUpdateTime.Day() {
+	if mixinKey == "" || time.Since(mixinKeyUpdateTime) > CheckInterval {
 		err := UpdateMixinKey()
 		if err != nil {
 			return "", err
@@ -163,8 +168,8 @@ var unwantedChars = strings.NewReplacer(
 	"*", "",
 )
 
-// 加密请求参数
-func EncodeWBI(query url.Values) error {
+// 添加请求参数验证参数
+func AddMixinKey(query url.Values) error {
 	// remove unwanted characters
 	for k, v := range query {
 		if len(v) >= 1 {
@@ -179,25 +184,24 @@ func EncodeWBI(query url.Values) error {
 		return err
 	}
 	query.Del("w_rid")
-	query.Set("web_location", "333.999")
 	query.Set("wts", strconv.Itoa(int(time.Now().Unix())))
 	hash := md5.Sum([]byte(query.Encode() + key))
 	query.Set("w_rid", hex.EncodeToString(hash[:]))
 	return nil
 }
 
-type NeedWBI interface {
-	NeedWBI()
+type NeedMixinKey interface {
+	NeedMixinKey()
 }
 
-// 对于需要添加 mixin_key 的接口 只需要将 WBI 嵌入结构体即可
-type WBI struct{}
+// 对于需要添加 mixin_key 的接口 只需要将 MixinKey 嵌入结构体即可
+type MixinKey struct{}
 
-func (WBI) NeedWBI() {}
+func (MixinKey) NeedMixinKey() {}
 
 // 需要添加 mixin_key 的 GET 请求
 //
-// 嵌入此字段后不用再嵌入 WBI 字段
+// 嵌入此字段后不用额外嵌入 MixinKey 字段
 type GetWBI struct{}
 
 func (GetWBI) Method() string {
@@ -211,7 +215,7 @@ func (GetWBI) NewRequestWithContext(ctx context.Context, cli *req.Client, api re
 		return
 	}
 	// calculate access_id
-	if _, ok := api.(NeedAccess); ok {
+	if _, ok := api.(NeedAccessID); ok {
 		_, err = GetAccessID()
 		if err != nil {
 			return
@@ -230,10 +234,10 @@ func (GetWBI) NewRequestWithContext(ctx context.Context, cli *req.Client, api re
 		return
 	}
 	// reset query
-	if _, ok := api.(NeedAccess); ok {
+	if _, ok := api.(NeedAccessID); ok {
 		query.Set("w_webid", accessID)
 	}
-	err = EncodeWBI(query)
+	err = AddMixinKey(query)
 	if err != nil {
 		return
 	}
@@ -260,20 +264,9 @@ func (PostCSRF) NewRequestWithContext(ctx context.Context, cli *req.Client, api 
 		err = ErrBiliJctNotExists
 		return
 	}
-	// generate request url
-	var u *url.URL
-	rawURL := api.RawURL()
-	if cli.BaseURL != nil && strings.HasPrefix(rawURL, "/") {
-		u = cli.BaseURL.JoinPath(rawURL)
-	} else {
-		u, err = url.Parse(rawURL)
-		if err != nil {
-			return
-		}
-	}
 	// get bili_jct
 	var biliJct string
-	for _, cookie := range jar.Cookies(u) {
+	for _, cookie := range jar.Cookies(nil) {
 		if cookie.Name == "bili_jct" {
 			biliJct = cookie.Value
 			break
@@ -299,13 +292,13 @@ func (PostCSRF) NewRequestWithContext(ctx context.Context, cli *req.Client, api 
 		return
 	}
 	// wbi verify
-	if _, ok := api.(NeedWBI); ok {
+	if _, ok := api.(NeedMixinKey); ok {
 		var query url.Values
 		query, err = cli.MakeURLValues(task.Query, value)
 		if err != nil {
 			return
 		}
-		err = EncodeWBI(query)
+		err = AddMixinKey(query)
 		if err != nil {
 			return
 		}

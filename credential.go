@@ -30,7 +30,7 @@ type Credential struct {
 	RefreshToken string
 }
 
-func (c *Credential) SetCookies(u *url.URL, cookies []*http.Cookie) {
+func (c *Credential) SetCookies(_ *url.URL, cookies []*http.Cookie) {
 	for _, cookie := range cookies {
 		switch cookie.Name {
 		case "SESSDATA":
@@ -47,7 +47,7 @@ func (c *Credential) SetCookies(u *url.URL, cookies []*http.Cookie) {
 	}
 }
 
-func (c *Credential) Cookies(u *url.URL) []*http.Cookie {
+func (c *Credential) Cookies(*url.URL) []*http.Cookie {
 	return []*http.Cookie{
 		{Name: "SESSDATA", Value: c.SESSDATA},
 		{Name: "bili_jct", Value: c.BiliJct},

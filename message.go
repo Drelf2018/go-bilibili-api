@@ -88,7 +88,7 @@ func GetSingleUnread(credential *Credential) (result SingleUnreadResponse, err e
 // 猜测是为了加上 WBI 验证 因为这个验证是用 query 里的字段进行的
 type SendMsg struct {
 	PostCSRF
-	WBI
+	MixinKey
 	*Credential
 
 	// 发送者 UID
