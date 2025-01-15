@@ -23,15 +23,15 @@ type PageReader interface {
 // 虽然迭代器要 go1.23 及以上才能用
 //
 // 但这不代表我这个 go1.18 的库不能先写出这样的函数来🤭
-func ReadPage[V Morer](api PageReader, timer req.RetryTimer) func(yeild func(int, V) bool) {
-	return func(yeild func(int, V) bool) {
+func ReadPage[V Morer](api PageReader, timer req.RetryTimer) func(yield func(int, V) bool) {
+	return func(yield func(int, V) bool) {
 		var v V
 		page, err := api.ReadPage(&v)
 		if err != nil {
 			return
 		}
 		for v.More() {
-			if !yeild(page, v) {
+			if !yield(page, v) {
 				return
 			}
 			d, ok := timer.NextRetry(0)
