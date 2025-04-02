@@ -834,13 +834,13 @@ func (Followers) RawURL() string {
 	return "/relation/followers"
 }
 
-func (api *Followers) ReadPage(v any) (int, error) {
+func (api *Followers) ReadPage(v any) (err error) {
 	if api.Pn == 0 {
 		api.Pn = 1
 	}
-	err := cli.Result(api, v)
+	err = cli.Result(api, v)
 	api.Pn++
-	return api.Pn - 1, err
+	return
 }
 
 var _ PageReader = (*Followers)(nil)
@@ -890,13 +890,13 @@ func (RelationFollowings) RawURL() string {
 	return "/relation/followings"
 }
 
-func (api *RelationFollowings) ReadPage(v any) (int, error) {
+func (api *RelationFollowings) ReadPage(v any) (err error) {
 	if api.Pn == 0 {
 		api.Pn = 1
 	}
-	err := cli.Result(api, v)
+	err = cli.Result(api, v)
 	api.Pn++
-	return api.Pn - 1, err
+	return
 }
 
 var _ PageReader = (*RelationFollowings)(nil)
@@ -944,13 +944,13 @@ func (FollowingsSearch) RawURL() string {
 	return "/relation/followings/search"
 }
 
-func (api *FollowingsSearch) ReadPage(v any) (int, error) {
+func (api *FollowingsSearch) ReadPage(v any) (err error) {
 	if api.Pn == 0 {
 		api.Pn = 1
 	}
-	err := cli.Result(api, v)
+	err = cli.Result(api, v)
 	api.Pn++
-	return api.Pn - 1, err
+	return
 }
 
 var _ PageReader = (*FollowingsSearch)(nil)
@@ -994,13 +994,13 @@ func (SameFollowings) RawURL() string {
 	return "/relation/same/followings"
 }
 
-func (api *SameFollowings) ReadPage(v any) (int, error) {
+func (api *SameFollowings) ReadPage(v any) (err error) {
 	if api.Pn == 0 {
 		api.Pn = 1
 	}
-	err := cli.Result(api, v)
+	err = cli.Result(api, v)
 	api.Pn++
-	return api.Pn - 1, err
+	return
 }
 
 var _ PageReader = (*SameFollowings)(nil)
@@ -1090,13 +1090,13 @@ func (Blacks) RawURL() string {
 	return "/relation/blacks"
 }
 
-func (api *Blacks) ReadPage(v any) (int, error) {
+func (api *Blacks) ReadPage(v any) (err error) {
 	if api.Pn == 0 {
 		api.Pn = 1
 	}
-	err := cli.Result(api, v)
+	err = cli.Result(api, v)
 	api.Pn++
-	return api.Pn - 1, err
+	return
 }
 
 var _ PageReader = (*Blacks)(nil)
@@ -1293,13 +1293,13 @@ func (Tag) RawURL() string {
 	return "/relation/tag"
 }
 
-func (api *Tag) ReadPage(v any) (int, error) {
+func (api *Tag) ReadPage(v any) (err error) {
 	if api.Pn == 0 {
 		api.Pn = 1
 	}
-	err := cli.Result(api, v)
+	err = cli.Result(api, v)
 	api.Pn++
-	return api.Pn - 1, err
+	return
 }
 
 var _ PageReader = (*Tag)(nil)
@@ -1992,7 +1992,7 @@ type SettingsResponse struct {
 		Theme               string `json:"theme"`                  // "default"
 		ThemePreviewImgPath string `json:"theme_preview_img_path"` // ""
 		Toutu               struct {
-			Sid          int    `json:"sid"`           // 1
+			SID          int    `json:"sid"`           // 1
 			Expire       int64  `json:"expire"`        // 2996777597
 			SImg         string `json:"s_img"`         // "bfs/space/768cc4fd97618cf589d23c2711a1d1a729f42235.png"
 			LImg         string `json:"l_img"`         // "bfs/space/cb1c3ef50e22b6096fde67febe863494caefebad.png"

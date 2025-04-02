@@ -512,10 +512,10 @@ func (VIPPointList) RawURL() string {
 	return "/vip_point/list"
 }
 
-func (api *VIPPointList) ReadPage(v any) (int, error) {
-	err := cli.Result(api, v)
+func (api *VIPPointList) ReadPage(v any) (err error) {
+	err = cli.Result(api, v)
 	api.Pn++
-	return api.Pn - 1, err
+	return
 }
 
 var _ PageReader = (*VIPPointList)(nil)
