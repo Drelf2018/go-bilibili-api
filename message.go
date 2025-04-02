@@ -2,6 +2,8 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -195,24 +197,42 @@ func (FetchSessionMsgs) RawURL() string {
 	return "https://api.vc.bilibili.com/svr_sync/v1/svr_sync/fetch_session_msgs"
 }
 
+var ErrNotSupported = errors.New("api: only FetchSessionMsgsResponse is supported")
+
+func (api *FetchSessionMsgs) ReadPage(v any) (err error) {
+	result, ok := v.(*FetchSessionMsgsResponse)
+	if !ok {
+		return ErrNotSupported
+	}
+	err = cli.Result(api, result)
+	api.EndSeqno = json.Number(result.Data.MinSeqno)
+	return
+}
+
+type Message struct {
+	SenderUID      int         `json:"sender_uid"`
+	ReceiverType   int         `json:"receiver_type"`
+	ReceiverID     int         `json:"receiver_id"`
+	MsgType        int         `json:"msg_type"`
+	Content        string      `json:"content"`
+	MsgSeqno       json.Number `json:"msg_seqno"`
+	Timestamp      int         `json:"timestamp"`
+	AtUIDs         []int       `json:"at_uids" gorm:"serializer:json"`
+	MsgKey         int64       `json:"msg_key"`
+	MsgStatus      int         `json:"msg_status"`
+	NotifyCode     string      `json:"notify_code"`
+	NewFaceVersion int         `json:"new_face_version,omitempty"`
+}
+
+func (m Message) String() string {
+	return fmt.Sprintf("%d: %s (%s)", m.SenderUID, m.Content, m.MsgSeqno)
+}
+
 type FetchSessionMsgsResponse struct {
 	Error
 	Msg  string `json:"msg"`
 	Data struct {
-		Messages []struct {
-			SenderUID      int         `json:"sender_uid"`
-			ReceiverType   int         `json:"receiver_type"`
-			ReceiverID     int         `json:"receiver_id"`
-			MsgType        int         `json:"msg_type"`
-			Content        string      `json:"content"`
-			MsgSeqno       json.Number `json:"msg_seqno"`
-			Timestamp      int         `json:"timestamp"`
-			AtUids         []int       `json:"at_uids"`
-			MsgKey         int64       `json:"msg_key"`
-			MsgStatus      int         `json:"msg_status"`
-			NotifyCode     string      `json:"notify_code"`
-			NewFaceVersion int         `json:"new_face_version,omitempty"`
-		} `json:"messages"`
+		Messages []Message   `json:"messages"`
 		HasMore  int         `json:"has_more"`
 		MinSeqno json.Number `json:"min_seqno"`
 		MaxSeqno json.Number `json:"max_seqno"`
@@ -222,6 +242,10 @@ type FetchSessionMsgsResponse struct {
 			Size int    `json:"size"`
 		} `json:"e_infos"`
 	} `json:"data"`
+}
+
+func (r FetchSessionMsgsResponse) More() bool {
+	return r.Data.MinSeqno != "0"
 }
 
 // 私信消息记录
