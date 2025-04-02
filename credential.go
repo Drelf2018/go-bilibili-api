@@ -57,6 +57,7 @@ func (c *Credential) Cookies(*url.URL) []*http.Cookie {
 	}
 }
 
+// 判断凭据是否为空
 func (c *Credential) IsValid() bool {
 	return c != nil
 }
@@ -66,6 +67,7 @@ func (c *Credential) UID() int {
 	return i
 }
 
+// 刷新当前凭据
 func (c *Credential) Refresh() error {
 	return PostConfirmRefresh(c)
 }

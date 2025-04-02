@@ -182,11 +182,11 @@ type FetchSessionMsgs struct {
 	// 发送者设备
 	SenderDeviceID int `api:"query:1"`
 
-	// 开始的序列号
+	// 开始的序列号（开区间）
 	// 默认 0 为全部
 	BeginSeqno json.Number `api:"query,omitempty"`
 
-	// 结束的序列号
+	// 结束的序列号（开区间）
 	// 默认 0 为全部
 	EndSeqno json.Number `api:"query,omitempty"`
 }
@@ -225,12 +225,23 @@ type FetchSessionMsgsResponse struct {
 }
 
 // 私信消息记录
-func GetFetchSessionMsgs(talkerID int, sessionType int, size int, beginSeqno string, credential *Credential) (result FetchSessionMsgsResponse, err error) {
+//
+// talkerID: 聊天对象的 ID
+//
+// sessionType: 聊天对象的类型 (1)用户 (2)粉丝团
+//
+// size: 列出消息条数 最大 2000
+//
+// beginSeqno: 消息开始的序列号（开区间） 默认 0 为全部
+//
+// endSeqno: 消息结束的序列号（开区间） 默认 0 为全部
+func GetFetchSessionMsgs(talkerID, sessionType, size int, beginSeqno, endSeqno string, credential *Credential) (result FetchSessionMsgsResponse, err error) {
 	err = cli.Result(FetchSessionMsgs{
 		TalkerID:    talkerID,
 		SessionType: sessionType,
 		Size:        size,
 		BeginSeqno:  json.Number(beginSeqno),
+		EndSeqno:    json.Number(endSeqno),
 		Credential:  credential,
 	}, &result)
 	return
