@@ -834,16 +834,23 @@ func (Followers) RawURL() string {
 	return "/relation/followers"
 }
 
-func (api *Followers) ReadPage(v any) (err error) {
+func (api *Followers) ReadPage() (v FollowersResponse, err error) {
 	if api.Pn == 0 {
 		api.Pn = 1
 	}
-	err = cli.Result(api, v)
+	err = cli.Result(api, &v)
+	if err != nil {
+		return
+	}
+	if len(v.Data.List) == 0 {
+		err = ErrNoMorePage
+		return
+	}
 	api.Pn++
 	return
 }
 
-var _ PageReader = (*Followers)(nil)
+var _ PageReader[FollowersResponse] = (*Followers)(nil)
 
 type FollowersResponse struct {
 	Error
@@ -853,12 +860,6 @@ type FollowersResponse struct {
 		Total     int            `json:"total"`      // 1057249
 	} `json:"data"`
 }
-
-func (r FollowersResponse) More() bool {
-	return len(r.Data.List) != 0
-}
-
-var _ Morer = (*FollowersResponse)(nil)
 
 // 查询用户粉丝明细
 func GetFollowers(uid int, credential *Credential) (result FollowersResponse, err error) {
@@ -890,16 +891,23 @@ func (RelationFollowings) RawURL() string {
 	return "/relation/followings"
 }
 
-func (api *RelationFollowings) ReadPage(v any) (err error) {
+func (api *RelationFollowings) ReadPage() (v RelationFollowingsResponse, err error) {
 	if api.Pn == 0 {
 		api.Pn = 1
 	}
-	err = cli.Result(api, v)
+	err = cli.Result(api, &v)
+	if err != nil {
+		return
+	}
+	if len(v.Data.List) == 0 {
+		err = ErrNoMorePage
+		return
+	}
 	api.Pn++
 	return
 }
 
-var _ PageReader = (*RelationFollowings)(nil)
+var _ PageReader[RelationFollowingsResponse] = (*RelationFollowings)(nil)
 
 type RelationFollowingsResponse struct {
 	Error
@@ -909,12 +917,6 @@ type RelationFollowingsResponse struct {
 		Total     int            `json:"total"`      // 207
 	} `json:"data"`
 }
-
-func (r RelationFollowingsResponse) More() bool {
-	return len(r.Data.List) != 0
-}
-
-var _ Morer = (*RelationFollowingsResponse)(nil)
 
 // 查询用户关注明细
 func GetRelationFollowings(uid int, credential *Credential) (result RelationFollowingsResponse, err error) {
@@ -944,16 +946,23 @@ func (FollowingsSearch) RawURL() string {
 	return "/relation/followings/search"
 }
 
-func (api *FollowingsSearch) ReadPage(v any) (err error) {
+func (api *FollowingsSearch) ReadPage() (v FollowingsSearchResponse, err error) {
 	if api.Pn == 0 {
 		api.Pn = 1
 	}
-	err = cli.Result(api, v)
+	err = cli.Result(api, &v)
+	if err != nil {
+		return
+	}
+	if len(v.Data.List) == 0 {
+		err = ErrNoMorePage
+		return
+	}
 	api.Pn++
 	return
 }
 
-var _ PageReader = (*FollowingsSearch)(nil)
+var _ PageReader[FollowingsSearchResponse] = (*FollowingsSearch)(nil)
 
 type FollowingsSearchResponse struct {
 	Error
@@ -962,12 +971,6 @@ type FollowingsSearchResponse struct {
 		Total int            `json:"total"` // 1
 	} `json:"data"`
 }
-
-func (r FollowingsSearchResponse) More() bool {
-	return len(r.Data.List) != 0
-}
-
-var _ Morer = (*FollowingsSearchResponse)(nil)
 
 // 搜索关注明细
 func GetFollowingsSearch(uid int, name string, credential *Credential) (result FollowingsSearchResponse, err error) {
@@ -994,16 +997,23 @@ func (SameFollowings) RawURL() string {
 	return "/relation/same/followings"
 }
 
-func (api *SameFollowings) ReadPage(v any) (err error) {
+func (api *SameFollowings) ReadPage() (v SameFollowingsResponse, err error) {
 	if api.Pn == 0 {
 		api.Pn = 1
 	}
-	err = cli.Result(api, v)
+	err = cli.Result(api, &v)
+	if err != nil {
+		return
+	}
+	if len(v.Data.List) == 0 {
+		err = ErrNoMorePage
+		return
+	}
 	api.Pn++
 	return
 }
 
-var _ PageReader = (*SameFollowings)(nil)
+var _ PageReader[SameFollowingsResponse] = (*SameFollowings)(nil)
 
 type SameFollowingsResponse struct {
 	Error
@@ -1013,12 +1023,6 @@ type SameFollowingsResponse struct {
 		Total     int            `json:"total"`      // 7
 	} `json:"data"`
 }
-
-func (r SameFollowingsResponse) More() bool {
-	return len(r.Data.List) != 0
-}
-
-var _ Morer = (*SameFollowingsResponse)(nil)
 
 // 查询共同关注明细
 func GetSameFollowings(uid int, credential *Credential) (result SameFollowingsResponse, err error) {
@@ -1090,16 +1094,23 @@ func (Blacks) RawURL() string {
 	return "/relation/blacks"
 }
 
-func (api *Blacks) ReadPage(v any) (err error) {
+func (api *Blacks) ReadPage() (v BlacksResponse, err error) {
 	if api.Pn == 0 {
 		api.Pn = 1
 	}
-	err = cli.Result(api, v)
+	err = cli.Result(api, &v)
+	if err != nil {
+		return
+	}
+	if len(v.Data.List) == 0 {
+		err = ErrNoMorePage
+		return
+	}
 	api.Pn++
 	return
 }
 
-var _ PageReader = (*Blacks)(nil)
+var _ PageReader[BlacksResponse] = (*Blacks)(nil)
 
 type BlacksResponse struct {
 	Error
@@ -1109,12 +1120,6 @@ type BlacksResponse struct {
 		Total     int            `json:"total"`      // 87
 	} `json:"data"`
 }
-
-func (r BlacksResponse) More() bool {
-	return len(r.Data.List) != 0
-}
-
-var _ Morer = (*BlacksResponse)(nil)
 
 // 查询黑名单明细
 func GetBlacks(credential *Credential) (result BlacksResponse, err error) {
@@ -1293,27 +1298,28 @@ func (Tag) RawURL() string {
 	return "/relation/tag"
 }
 
-func (api *Tag) ReadPage(v any) (err error) {
+func (api *Tag) ReadPage() (v TagResponse, err error) {
 	if api.Pn == 0 {
 		api.Pn = 1
 	}
-	err = cli.Result(api, v)
+	err = cli.Result(api, &v)
+	if err != nil {
+		return
+	}
+	if len(v.Data) == 0 {
+		err = ErrNoMorePage
+		return
+	}
 	api.Pn++
 	return
 }
 
-var _ PageReader = (*Tag)(nil)
+var _ PageReader[TagResponse] = (*Tag)(nil)
 
 type TagResponse struct {
 	Error
 	Data []RelationItem `json:"data"`
 }
-
-func (r TagsResponse) More() bool {
-	return len(r.Data) != 0
-}
-
-var _ Morer = (*TagsResponse)(nil)
 
 // 查询关注分组明细
 func GetTag(tagid int, credential *Credential) (result TagResponse, err error) {

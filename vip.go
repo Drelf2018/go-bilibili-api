@@ -502,7 +502,7 @@ type VIPPointList struct {
 	ChangeType int `api:"query:0"`
 
 	// 分页页数
-	Pn int `api:"query:0"`
+	Pn int `api:"query:1"`
 
 	// 分页大小
 	Ps int `api:"query:20"`
@@ -512,13 +512,23 @@ func (VIPPointList) RawURL() string {
 	return "/vip_point/list"
 }
 
-func (api *VIPPointList) ReadPage(v any) (err error) {
-	err = cli.Result(api, v)
+func (api *VIPPointList) ReadPage() (v VIPPointListResponse, err error) {
+	if api.Pn == 0 {
+		api.Pn = 1
+	}
+	err = cli.Result(api, &v)
+	if err != nil {
+		return
+	}
+	if len(v.Data.BigPointList) == 0 {
+		err = ErrNoMorePage
+		return
+	}
 	api.Pn++
 	return
 }
 
-var _ PageReader = (*VIPPointList)(nil)
+var _ PageReader[VIPPointListResponse] = (*VIPPointList)(nil)
 
 type VIPPointListResponse struct {
 	Error
@@ -533,12 +543,6 @@ type VIPPointListResponse struct {
 		} `json:"big_point_list"`
 	} `json:"data"`
 }
-
-func (r VIPPointListResponse) More() bool {
-	return len(r.Data.BigPointList) != 0
-}
-
-var _ Morer = (*VIPPointListResponse)(nil)
 
 // 大积分改变记录
 func GetVIPPointList(credential *Credential) (result VIPPointListResponse, err error) {

@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -197,17 +196,20 @@ func (FetchSessionMsgs) RawURL() string {
 	return "https://api.vc.bilibili.com/svr_sync/v1/svr_sync/fetch_session_msgs"
 }
 
-var ErrNotSupported = errors.New("api: only FetchSessionMsgsResponse is supported")
-
-func (api *FetchSessionMsgs) ReadPage(v any) (err error) {
-	result, ok := v.(*FetchSessionMsgsResponse)
-	if !ok {
-		return ErrNotSupported
+func (api *FetchSessionMsgs) ReadPage() (v FetchSessionMsgsResponse, err error) {
+	err = cli.Result(api, &v)
+	if err != nil {
+		return
 	}
-	err = cli.Result(api, result)
-	api.EndSeqno = json.Number(result.Data.MinSeqno)
+	if v.Data.MinSeqno == "18446744073709551615" {
+		err = ErrNoMorePage
+		return
+	}
+	api.EndSeqno = json.Number(v.Data.MinSeqno)
 	return
 }
+
+var _ PageReader[FetchSessionMsgsResponse] = (*FetchSessionMsgs)(nil)
 
 type Message struct {
 	SenderUID      int         `json:"sender_uid"`
@@ -242,10 +244,6 @@ type FetchSessionMsgsResponse struct {
 			Size int    `json:"size"`
 		} `json:"e_infos"`
 	} `json:"data"`
-}
-
-func (r FetchSessionMsgsResponse) More() bool {
-	return r.Data.MinSeqno != "0"
 }
 
 // 私信消息记录
