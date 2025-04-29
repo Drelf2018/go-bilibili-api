@@ -5,8 +5,11 @@ import (
 	"net/url"
 
 	"github.com/Drelf2018/req"
+
+	_ "unsafe"
 )
 
+//go:linkname cli
 var cli = &req.Client{
 	Header: http.Header{
 		"User-Agent": {req.UserAgent},

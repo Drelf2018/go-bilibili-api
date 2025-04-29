@@ -4,8 +4,6 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-
-	"github.com/Drelf2018/req"
 )
 
 // 凭据
@@ -31,6 +29,9 @@ type Credential struct {
 }
 
 func (c *Credential) SetCookies(_ *url.URL, cookies []*http.Cookie) {
+	if c == nil {
+		return
+	}
 	for _, cookie := range cookies {
 		switch cookie.Name {
 		case "SESSDATA":
@@ -48,6 +49,9 @@ func (c *Credential) SetCookies(_ *url.URL, cookies []*http.Cookie) {
 }
 
 func (c *Credential) Cookies(*url.URL) []*http.Cookie {
+	if c == nil {
+		return []*http.Cookie{}
+	}
 	return []*http.Cookie{
 		{Name: "SESSDATA", Value: c.SESSDATA},
 		{Name: "bili_jct", Value: c.BiliJct},
@@ -57,14 +61,16 @@ func (c *Credential) Cookies(*url.URL) []*http.Cookie {
 	}
 }
 
-// 判断凭据是否为空
-func (c *Credential) IsValid() bool {
-	return c != nil
-}
-
+// 凭据中的用户序号
 func (c *Credential) UID() int {
 	i, _ := strconv.Atoi(c.DedeUserID)
 	return i
+}
+
+// 判断凭据是否有效
+func (c *Credential) IsValid() bool {
+	result, err := GetNav(c)
+	return err == nil && result.Code == 0
 }
 
 // 刷新当前凭据
@@ -72,4 +78,4 @@ func (c *Credential) Refresh() error {
 	return PostConfirmRefresh(c)
 }
 
-var _ req.CookieJar = (*Credential)(nil)
+var _ http.CookieJar = (*Credential)(nil)

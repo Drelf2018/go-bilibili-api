@@ -2,7 +2,6 @@ package api
 
 import (
 	"bytes"
-	"context"
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
@@ -88,15 +87,6 @@ func GetAccessID() (string, error) {
 	}
 	return accessID, nil
 }
-
-type NeedAccessID interface {
-	NeedAccessID()
-}
-
-// 对于需要添加 access_id 的接口 只需要将 AccessID 嵌入结构体即可
-type AccessID struct{}
-
-func (AccessID) NeedAccessID() {}
 
 var mixinKey string
 
@@ -190,27 +180,26 @@ func AddMixinKey(query url.Values) error {
 	return nil
 }
 
-type NeedMixinKey interface {
-	NeedMixinKey()
+type NeedAccessID interface {
+	NeedAccessID()
 }
+
+// 对于需要添加 access_id 的接口 只需要将 AccessID 嵌入结构体即可
+type AccessID struct{}
+
+func (AccessID) NeedAccessID() {}
 
 // 对于需要添加 mixin_key 的接口 只需要将 MixinKey 嵌入结构体即可
 type MixinKey struct{}
 
-func (MixinKey) NeedMixinKey() {}
-
-// 需要添加 mixin_key 的 GET 请求
-//
-// 嵌入此字段后不用额外嵌入 MixinKey 字段
-type GetWBI struct{}
-
-func (GetWBI) Method() string {
-	return http.MethodGet
-}
-
-func (GetWBI) NewRequestWithContext(ctx context.Context, cli *req.Client, api req.APIData) (r *http.Request, err error) {
+func (MixinKey) Query(req *http.Request, cli *req.Client, query []req.Field, value reflect.Value, api req.API) (err error) {
 	// calculate mixin_key
 	_, err = GetMixinKey()
+	if err != nil {
+		return
+	}
+	// create query values
+	values, err := cli.MakeURLValues(query, value)
 	if err != nil {
 		return
 	}
@@ -220,34 +209,27 @@ func (GetWBI) NewRequestWithContext(ctx context.Context, cli *req.Client, api re
 		if err != nil {
 			return
 		}
-	}
-	// create request
-	r, err = cli.AddBody(ctx, api, nil)
-	if err != nil {
-		return
-	}
-	// create query values
-	task := req.LoadTask(api)
-	value := reflect.Indirect(reflect.ValueOf(api))
-	query, err := cli.MakeURLValues(task.Query, value)
-	if err != nil {
-		return
+		values.Set("w_webid", accessID)
 	}
 	// reset query
-	if _, ok := api.(NeedAccessID); ok {
-		query.Set("w_webid", accessID)
-	}
-	err = AddMixinKey(query)
+	err = AddMixinKey(values)
 	if err != nil {
 		return
 	}
-	r.URL.RawQuery = query.Encode()
-	// add header
-	err = cli.AddHeader(r, task.Header, value)
+	req.URL.RawQuery = values.Encode()
 	return
 }
 
-var _ req.APICreator = GetWBI{}
+// 需要添加 mixin_key 的 GET 请求
+//
+// 嵌入此字段后不用额外嵌入 MixinKey 字段
+type GetWBI struct{ MixinKey }
+
+func (GetWBI) Method() string {
+	return http.MethodGet
+}
+
+var _ req.APIQuery = GetWBI{}
 
 var ErrBiliJctNotExists = errors.New("api: bili_jct does not exist")
 
@@ -257,10 +239,10 @@ func (PostCSRF) Method() string {
 	return http.MethodPost
 }
 
-func (PostCSRF) NewRequestWithContext(ctx context.Context, cli *req.Client, api req.APIData) (r *http.Request, err error) {
+func (PostCSRF) Body(cli *req.Client, body []req.Field, value reflect.Value, api req.API) (_ io.Reader, err error) {
 	// check cookie
-	jar, ok := api.(req.CookieJar)
-	if !ok || !jar.IsValid() {
+	jar, ok := api.(http.CookieJar)
+	if !ok || jar == nil {
 		err = ErrBiliJctNotExists
 		return
 	}
@@ -277,42 +259,19 @@ func (PostCSRF) NewRequestWithContext(ctx context.Context, cli *req.Client, api 
 		return
 	}
 	// create form body
-	task := req.LoadTask(api)
-	value := reflect.Indirect(reflect.ValueOf(api))
-	form := url.Values{"csrf": {biliJct}}
-	for _, data := range task.Body {
-		err = cli.AddValue(form, data, value)
-		if err != nil {
-			return
-		}
-	}
-	// create request
-	r, err = cli.AddBody(ctx, api, strings.NewReader(form.Encode()))
+	form, err := cli.MakeURLValues(body, value)
 	if err != nil {
 		return
 	}
-	// wbi verify
-	if _, ok := api.(NeedMixinKey); ok {
-		var query url.Values
-		query, err = cli.MakeURLValues(task.Query, value)
-		if err != nil {
-			return
-		}
-		err = AddMixinKey(query)
-		if err != nil {
-			return
-		}
-		r.URL.RawQuery = query.Encode()
-	} else {
-		err = cli.AddQuery(r, task.Query, value)
-		if err != nil {
-			return
-		}
-	}
-	// add header
-	err = cli.AddHeader(r, task.Header, value)
-	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	form.Set("csrf", biliJct)
+	return strings.NewReader(form.Encode()), nil
+}
+
+func (PostCSRF) Header(req *http.Request, cli *req.Client, header []req.Field, value reflect.Value, api req.API) (err error) {
+	err = cli.AddHeader(req, header, value)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	return
 }
 
-var _ req.APICreator = PostCSRF{}
+var _ req.APIBody = PostCSRF{}
+var _ req.APIHeader = PostCSRF{}
