@@ -17,19 +17,7 @@ import (
 	"github.com/Drelf2018/req"
 )
 
-// 先对各个参数的名称规范化一下
-// 在对查询参数的验证时可能用到两个参数名为 w_rid 和 w_webid
-// 这两个参数的值在网页 js 中变量名为 mixin_key 和 access_id
-// 因此本库中将以 MixinKey 和 AccessID 作为命名方式
-
-// 检查 accessID 和 mixinKey 的间隔
-//
-// 每次发起请求时若用到了这两个参数，就会检查是否太久未更新，如果超出这个间隔则会自动更新一次
-var CheckInterval time.Duration = time.Hour
-
 var mixinKey string
-
-var mixinKeyUpdateTime time.Time
 
 // 申必魔法数字列表
 var mixinKeyEncTab = []int{
@@ -59,7 +47,7 @@ func SplitURL(url string) string {
 	return strings.Replace(filepath.Base(url), filepath.Ext(url), "", 1)
 }
 
-// 更新 mixinKey（一般不需要手动调用）
+// 更新 mixinKey
 //
 // 成功后会刷新 mixinKeyUpdateTime
 func UpdateMixinKey() error {
@@ -72,15 +60,12 @@ func UpdateMixinKey() error {
 		return e.Unwrap()
 	}
 	mixinKey = GenerateMixinKey(SplitURL(r.Data.WbiImg.ImgURL) + SplitURL(r.Data.WbiImg.SubURL))
-	mixinKeyUpdateTime = time.Now()
 	return nil
 }
 
 // 获取 mixinKey
-//
-// 无法保证一定可用，因为可能在上次检查后服务端就刷新了
 func GetMixinKey() (string, error) {
-	if mixinKey == "" || time.Since(mixinKeyUpdateTime) > CheckInterval {
+	if mixinKey == "" {
 		err := UpdateMixinKey()
 		if err != nil {
 			return "", err
