@@ -4,14 +4,12 @@ import (
 	"bytes"
 	"crypto/md5"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
 	"net/url"
 	"path/filepath"
 	"reflect"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -28,65 +26,6 @@ import (
 //
 // 每次发起请求时若用到了这两个参数，就会检查是否太久未更新，如果超出这个间隔则会自动更新一次
 var CheckInterval time.Duration = time.Hour
-
-var accessID string
-
-var accessIDUpdateTime time.Time
-
-var accessPattern = regexp.MustCompile(`<script id="__RENDER_DATA__" type="application/json">(.*?)</script>`)
-
-var ErrAccessNotExist = errors.New("api: access_id does not exist")
-
-// 更新 accessID（一般不需要手动调用）
-//
-// 成功后会刷新 accessIDUpdateTime
-func UpdateAccessID() error {
-	resp, err := http.Get("https://space.bilibili.com/208259/dynamic")
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	b, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-
-	r := accessPattern.FindStringSubmatch(string(b))
-	if len(r) < 2 {
-		return ErrAccessNotExist
-	}
-
-	s, err := url.QueryUnescape(r[1])
-	if err != nil {
-		return err
-	}
-
-	var data struct {
-		AccessID string `json:"access_id"`
-	}
-	err = json.Unmarshal([]byte(s), &data)
-	if err != nil {
-		return err
-	}
-
-	accessID = data.AccessID
-	accessIDUpdateTime = time.Now()
-	return nil
-}
-
-// 获取 accessID
-//
-// 无法保证一定可用，因为可能在上次检查后服务端就刷新了
-func GetAccessID() (string, error) {
-	if accessID == "" || time.Since(accessIDUpdateTime) > CheckInterval {
-		err := UpdateAccessID()
-		if err != nil {
-			return "", err
-		}
-	}
-	return accessID, nil
-}
 
 var mixinKey string
 
@@ -180,15 +119,6 @@ func AddMixinKey(query url.Values) error {
 	return nil
 }
 
-type NeedAccessID interface {
-	NeedAccessID()
-}
-
-// 对于需要添加 access_id 的接口 只需要将 AccessID 嵌入结构体即可
-type AccessID struct{}
-
-func (AccessID) NeedAccessID() {}
-
 // 对于需要添加 mixin_key 的接口 只需要将 MixinKey 嵌入结构体即可
 type MixinKey struct{}
 
@@ -202,14 +132,6 @@ func (MixinKey) Query(req *http.Request, cli *req.Client, query []req.Field, val
 	values, err := cli.MakeURLValues(query, value)
 	if err != nil {
 		return
-	}
-	// calculate access_id
-	if _, ok := api.(NeedAccessID); ok {
-		_, err = GetAccessID()
-		if err != nil {
-			return
-		}
-		values.Set("w_webid", accessID)
 	}
 	// reset query
 	err = AddMixinKey(values)

@@ -12,7 +12,6 @@ import (
 // 用户空间详细信息
 type AccInfo struct {
 	GetWBI
-	AccessID
 	*Credential
 
 	// 目标用户 UID
