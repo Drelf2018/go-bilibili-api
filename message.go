@@ -23,7 +23,6 @@ func (Unread) RawURL() string {
 
 type UnreadResponse struct {
 	Error
-
 	Data struct {
 		At          int `json:"at"`
 		Chat        int `json:"chat"`
@@ -132,7 +131,6 @@ func (SendMsg) RawURL() string {
 
 type SendMsgResponse struct {
 	Error
-
 	Data struct {
 		MsgKey int64 `json:"msg_key"`
 		EInfos []struct {

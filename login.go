@@ -248,7 +248,6 @@ func (NavStat) RawURL() string {
 
 type NavStatResponse struct {
 	Error
-
 	Data struct {
 		Following    int `json:"following"`
 		Follower     int `json:"follower"`
@@ -300,7 +299,6 @@ func (Account) RawURL() string {
 
 type AccountResponse struct {
 	Error
-
 	Data struct {
 		MID      int    `json:"mid"`
 		Uname    string `json:"uname"`
@@ -331,7 +329,6 @@ func (Reward) RawURL() string {
 
 type RewardResponse struct {
 	Error
-
 	Data struct {
 		Login        bool `json:"login"`
 		Watch        bool `json:"watch"`
@@ -461,7 +458,6 @@ func (RealnameStatus) RawURL() string {
 
 type RealnameStatusResponse struct {
 	Error
-
 	Data struct {
 		Status int `json:"status"`
 	} `json:"data"`
@@ -485,7 +481,6 @@ func (ApplyStatus) RawURL() string {
 
 type ApplyStatusResponse struct {
 	Error
-
 	Data struct {
 		Status   int    `json:"status"`
 		Remark   string `json:"remark"`
@@ -513,7 +508,6 @@ func (CoinLog) RawURL() string {
 
 type CoinLogResponse struct {
 	Error
-
 	Data struct {
 		List []struct {
 			Time   string `json:"time"`
@@ -568,7 +562,6 @@ func (EXPLog) RawURL() string {
 
 type EXPLogResponse struct {
 	Error
-
 	Data struct {
 		List []struct {
 			Delta  int    `json:"delta"`
@@ -600,7 +593,6 @@ func (MoralLog) RawURL() string {
 
 type MoralLogResponse struct {
 	Error
-
 	Data struct {
 		Moral int           `json:"moral"`
 		List  []interface{} `json:"list"`
@@ -634,7 +626,6 @@ func (LoginNotice) RawURL() string {
 
 type LoginNoticeResponse struct {
 	Error
-
 	Data struct {
 		MID        int    `json:"mid"`
 		DeviceName string `json:"device_name"`
@@ -666,7 +657,6 @@ func (LoginLog) RawURL() string {
 
 type LoginLogResponse struct {
 	Error
-
 	Data struct {
 		Count int `json:"count"`
 		List  []struct {
