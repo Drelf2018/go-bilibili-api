@@ -2090,5 +2090,465 @@ func PostSetToutu(id int, credential *Credential) (result SetToutuResponse, err 
 	return
 }
 
+// 查询用户最近玩过的游戏
+type LastPlayGame struct {
+	req.Get
+	*Credential
+
+	// 目标用户 UID
+	MID int `api:"query"`
+}
+
+func (LastPlayGame) RawURL() string {
+	return "/space/lastplaygame/v2"
+}
+
+type LastPlayGameResponse struct {
+	Error
+	Data struct {
+		PageNum    int `json:"page_num"`    // 0
+		PageSize   int `json:"page_size"`   // 15
+		TotalCount int `json:"total_count"` // 1
+		List       []struct {
+			GameBaseID   int      `json:"game_base_id"` // 102216
+			GameName     string   `json:"game_name"`    // "公主连结Re:Dive"
+			GameIcon     string   `json:"game_icon"`    // "https://i0.hdslb.com/bfs/game/3bb819e010fe6d594d8f4d417ee380f40e8b5b06.png"
+			Grade        float64  `json:"grade"`        // 8.5
+			DetailURL    string   `json:"detail_url"`   // "https://www.biligame.com/detail/?id=102216"
+			GameTags     []string `json:"game_tags"`
+			Notice       string   `json:"notice"`         // "五周年庆典开启中！登录就送10000宝石！"
+			GiftTitle    string   `json:"gift_title"`     // ""
+			GameStatusV2 int      `json:"game_status_v2"` // 0
+		} `json:"list"`
+	} `json:"data"`
+}
+
+// 查询用户最近玩过的游戏
+func GetLastPlayGame(uid int, credential *Credential) (result LastPlayGameResponse, err error) {
+	err = cli.Result(LastPlayGame{MID: uid, Credential: credential}, &result)
+	return
+}
+
+// 查询用户最近投币视频（Web）
+type CoinVideo struct {
+	req.Get
+	*Credential
+
+	// 目标用户 UID
+	Vmid int `api:"query"`
+}
+
+func (CoinVideo) RawURL() string {
+	return "/space/coin/video"
+}
+
+type CoinVideoResponse struct {
+	Error
+	Data []VideoInfo `json:"data"`
+}
+
+// 查询用户最近投币视频（Web）
+func GetCoinVideo(uid int, credential *Credential) (result CoinVideoResponse, err error) {
+	err = cli.Result(CoinVideo{Vmid: uid, Credential: credential}, &result)
+	return
+}
+
+// 查询用户最近点赞视频（Web）
+type LikeVideo struct {
+	req.Get
+	*Credential
+
+	// 目标用户 UID
+	Vmid int `api:"query"`
+}
+
+func (LikeVideo) RawURL() string {
+	return "/space/like/video"
+}
+
+type LikeVideoResponse struct {
+	Error
+	Data struct {
+		List []VideoInfo `json:"list"`
+	} `json:"data"`
+}
+
+// 查询用户最近点赞视频（Web）
+func GetLikeVideo(uid int, credential *Credential) (result LikeVideoResponse, err error) {
+	err = cli.Result(LikeVideo{Vmid: uid, Credential: credential}, &result)
+	return
+}
+
+// 查询用户投稿视频明细
+type ArcSearch struct {
+	GetWBI
+	*Credential
+
+	// 目标用户 UID
+	MID int `api:"query"`
+
+	// 排序方式
+	// 默认为 pubdate
+	// 最新发布 pubdate
+	// 最多播放 click
+	// 最多收藏 stow
+	Order string `api:"query"`
+
+	// 筛选目标分区
+	// 默认为 0 不进行分区筛选
+	TID int `api:"query"`
+
+	// 关键词筛选
+	// 用于使用关键词搜索该UP主视频稿件
+	Keyword string `api:"query"`
+
+	// 页码
+	// 默认为 1
+	Pn int `api:"query:1"`
+
+	// 每页项数
+	// 默认为 30
+	Ps int `api:"query:30"`
+}
+
+func (ArcSearch) RawURL() string {
+	return "/space/wbi/arc/search"
+}
+
+type ArcSearchResponse struct {
+	Error
+	Data struct {
+		List struct {
+			Slist []any `json:"slist"`
+			Tlist map[int]struct {
+				TID   int    `json:"tid"`   // 4
+				Count int    `json:"count"` // 13
+				Name  string `json:"name"`  // "游戏"
+			} `json:"tlist"`
+			Vlist []struct {
+				Comment          int    `json:"comment"`            // 44
+				TypeID           int    `json:"typeid"`             // 27
+				Play             int    `json:"play"`               // 5258
+				Pic              string `json:"pic"`                // "http://i1.hdslb.com/bfs/archive/090bdea9fa9e5cacd78f50961e4db615d13cee5e.jpg"
+				Subtitle         string `json:"subtitle"`           // ""
+				Description      string `json:"description"`        // "伊蕾娜生贺作品 不准骂我"
+				Copyright        string `json:"copyright"`          // "1"
+				Title            string `json:"title"`              // "我是灰之魔女伊蕾娜"
+				Review           int    `json:"review"`             // 0
+				Author           string `json:"author"`             // "脆鲨12138"
+				MID              int    `json:"mid"`                // 188888131
+				Created          int    `json:"created"`            // 1729094460
+				Length           string `json:"length"`             // "00:18"
+				VideoReview      int    `json:"video_review"`       // 2
+				AID              int64  `json:"aid"`                // 113315128938366
+				BVID             string `json:"bvid"`               // "BV1hxmwYDEJ6"
+				HideClick        bool   `json:"hide_click"`         // false
+				IsPay            int    `json:"is_pay"`             // 0
+				IsUnionVideo     int    `json:"is_union_video"`     // 0
+				IsSteinsGate     int    `json:"is_steins_gate"`     // 0
+				IsLivePlayback   int    `json:"is_live_playback"`   // 0
+				IsLessonVideo    int    `json:"is_lesson_video"`    // 0
+				IsLessonFinished int    `json:"is_lesson_finished"` // 0
+				LessonUpdateInfo string `json:"lesson_update_info"` // ""
+				JumpURL          string `json:"jump_url"`           // ""
+				Meta             any    `json:"meta"`
+				IsAvoided        int    `json:"is_avoided"`        // 0
+				SeasonID         int    `json:"season_id"`         // 0
+				Attribute        int    `json:"attribute"`         // 16640
+				IsChargingArc    bool   `json:"is_charging_arc"`   // false
+				ElecArcType      int    `json:"elec_arc_type"`     // 0
+				Vt               int    `json:"vt"`                // 0
+				EnableVt         int    `json:"enable_vt"`         // 0
+				VtDisplay        string `json:"vt_display"`        // ""
+				PlaybackPosition int    `json:"playback_position"` // 0
+				IsSelfView       bool   `json:"is_self_view"`      // false
+			} `json:"vlist"`
+		} `json:"list"`
+		Page struct {
+			Pn    int `json:"pn"`    // 1
+			Ps    int `json:"ps"`    // 30
+			Count int `json:"count"` // 77
+		} `json:"page"`
+		EpisodicButton struct {
+			Text string `json:"text"` // "播放全部"
+			URI  string `json:"uri"`  // "//www.bilibili.com/medialist/play/188888131?from=space"
+		} `json:"episodic_button"`
+		IsRisk      bool `json:"is_risk"`       // false
+		GaiaResType int  `json:"gaia_res_type"` // 0
+		GaiaData    any  `json:"gaia_data"`
+	} `json:"data"`
+}
+
+// 查询用户投稿视频明细
+func GetArcSearch(uid int, credential *Credential) (result ArcSearchResponse, err error) {
+	err = cli.Result(ArcSearch{MID: uid, Credential: credential}, &result)
+	return
+}
+
+// 查询用户投稿专栏明细
+type Article struct {
+	GetWBI
+	*Credential
+
+	// 目标用户 UID
+	MID int `api:"query"`
+
+	// 页码
+	// 默认为 1
+	Pn int `api:"query:1"`
+
+	// 每页项数
+	// 默认为 30
+	Ps int `api:"query:30"`
+
+	// 排序方式
+	// 默认为 publish_time
+	// 最新发布 publish_time
+	// 最多阅读 view
+	// 最多收藏 fav
+	Sort string `api:"query"`
+}
+
+func (Article) RawURL() string {
+	return "/space/wbi/article"
+}
+
+type ArticleResponse struct {
+	Error
+	Data struct {
+		Articles []struct {
+			ID       int `json:"id"` // 41510926
+			Category struct {
+				ID       int    `json:"id"`        // 15
+				ParentID int    `json:"parent_id"` // 3
+				Name     string `json:"name"`      // "日常"
+			} `json:"category"`
+			Categories []struct {
+				ID       int    `json:"id"`        // 3
+				ParentID int    `json:"parent_id"` // 0
+				Name     string `json:"name"`      // "生活"
+			} `json:"categories"`
+			Title      string `json:"title"`       // "B站UP主日报2025年04月29日23点（v1.1）"
+			Summary    string `json:"summary"`     // "粉丝数第3多：知识 罗翔说刑法 (3188.61万粉, +2541)昨日涨粉第1多：美食 灶台阿连 (+2.17万粉)昨日掉粉最多：游戏 阿Q君的吉拔猫 (-11376粉)昨日涨播放第3多：资讯 河南都市频道 (+1014.60万)昨日点赞数第1多：游戏 明日方舟 (+34.50万)昨日涨阅读第1多：运动 茉莉蜜糕 (+10.59万)昨日充电人次最多：美食 食贫道 (+308人)各位观众早上好，今天是2025年04月30日，农历四月初三，欢迎收看狸子每天定期更新的新人联播节目 o(∩_∩)o近期UP主宏观"
+			BannerURL  string `json:"banner_url"`  // ""
+			TemplateID int    `json:"template_id"` // 4
+			State      int    `json:"state"`       // 0
+			Author     struct {
+				MID     int    `json:"mid"`  // 300021061
+				Name    string `json:"name"` // "狸工智能"
+				Face    string `json:"face"` // "https://i1.hdslb.com/bfs/face/4cba9bc9d6cf6935a37ec156dedb8f8d26c1df95.jpg"
+				Pendant struct {
+					PID    int    `json:"pid"`    // 0
+					Name   string `json:"name"`   // ""
+					Image  string `json:"image"`  // ""
+					Expire int    `json:"expire"` // 0
+				} `json:"pendant"`
+				OfficialVerify struct {
+					Type int    `json:"type"` // -1
+					Desc string `json:"desc"` // ""
+				} `json:"official_verify"`
+				Nameplate struct {
+					NID        int    `json:"nid"`         // 3
+					Name       string `json:"name"`        // "白银殿堂"
+					Image      string `json:"image"`       // "https://i2.hdslb.com/bfs/face/f6a31275029365ae5dc710006585ddcf1139bde1.png"
+					ImageSmall string `json:"image_small"` // "https://i1.hdslb.com/bfs/face/b09cdb4c119c467cf2d15db5263b4f539fa6e30b.png"
+					Level      string `json:"level"`       // "高级勋章"
+					Condition  string `json:"condition"`   // "单个自制视频总播放数>=10万"
+				} `json:"nameplate"`
+				Vip struct {
+					Type       int `json:"type"`         // 1
+					Status     int `json:"status"`       // 0
+					DueDate    int `json:"due_date"`     // 0
+					VipPayType int `json:"vip_pay_type"` // 0
+					ThemeType  int `json:"theme_type"`   // 0
+					Label      struct {
+						Path       string `json:"path"`        // ""
+						Text       string `json:"text"`        // ""
+						LabelTheme string `json:"label_theme"` // ""
+					} `json:"label"`
+					AvatarSubscript int    `json:"avatar_subscript"` // 0
+					NicknameColor   string `json:"nickname_color"`   // ""
+				} `json:"vip"`
+			} `json:"author"`
+			Reprint     int      `json:"reprint"` // 0
+			ImageUrls   []string `json:"image_urls"`
+			PublishTime int      `json:"publish_time"` // 1745981640
+			Ctime       int      `json:"ctime"`        // 1745981640
+			Mtime       int      `json:"mtime"`        // 1745981640
+			Stats       struct {
+				View     int `json:"view"`     // 1927
+				Favorite int `json:"favorite"` // 0
+				Like     int `json:"like"`     // 24
+				Dislike  int `json:"dislike"`  // 0
+				Reply    int `json:"reply"`    // 0
+				Share    int `json:"share"`    // 0
+				Coin     int `json:"coin"`     // 0
+				Dynamic  int `json:"dynamic"`  // 0
+			} `json:"stats"`
+			Words           int      `json:"words"` // 0
+			OriginImageUrls []string `json:"origin_image_urls"`
+			List            any      `json:"list"`
+			IsLike          bool     `json:"is_like"` // false
+			Media           struct {
+				Score    int    `json:"score"`     // 0
+				MediaID  int    `json:"media_id"`  // 0
+				Title    string `json:"title"`     // ""
+				Cover    string `json:"cover"`     // ""
+				Area     string `json:"area"`      // ""
+				TypeID   int    `json:"type_id"`   // 0
+				TypeName string `json:"type_name"` // ""
+				Spoiler  int    `json:"spoiler"`   // 0
+			} `json:"media"`
+			ApplyTime        string `json:"apply_time"` // ""
+			CheckTime        string `json:"check_time"` // ""
+			Original         int    `json:"original"`   // 1
+			ActID            int    `json:"act_id"`     // 0
+			Dispute          any    `json:"dispute"`
+			AuthenMark       any    `json:"authenMark"`
+			CoverAvid        int    `json:"cover_avid"` // 0
+			TopVideoInfo     any    `json:"top_video_info"`
+			Type             int    `json:"type"`                 // 0
+			CheckState       int    `json:"check_state"`          // 0
+			OriginTemplateID int    `json:"origin_template_id"`   // 5
+			Attributes       int    `json:"attributes,omitempty"` // 148
+		} `json:"articles"`
+		Pn    int `json:"pn"`    // 1
+		Ps    int `json:"ps"`    // 30
+		Count int `json:"count"` // 2489
+	} `json:"data"`
+}
+
+// 查询用户投稿专栏明细
+func GetArticle(uid int, credential *Credential) (result ArticleResponse, err error) {
+	err = cli.Result(Article{MID: uid, Credential: credential}, &result)
+	return
+}
+
+// 查询用户专栏文集明细
+type ArticleLists struct {
+	req.Get
+	*Credential
+
+	// 目标用户 UID
+	MID int `api:"query"`
+
+	// 排序方式
+	// 默认为 0
+	// 最近更新 0
+	// 最多阅读 1
+	Sort int `api:"query"`
+}
+
+func (ArticleLists) RawURL() string {
+	return "/article/up/lists"
+}
+
+type ArticleListsResponse struct {
+	Error
+	Data struct {
+		Lists []struct {
+			ID            int    `json:"id"`             // 26407
+			MID           int    `json:"mid"`            // 2859372
+			Name          string `json:"name"`           // "周榜"
+			ImageURL      string `json:"image_url"`      // "https://i0.hdslb.com/bfs/article/96d2b3d2a72e6497a011c885ab9245c51507ce18.png"
+			UpdateTime    int    `json:"update_time"`    // 1745768376
+			Ctime         int    `json:"ctime"`          // 1537942450
+			PublishTime   int    `json:"publish_time"`   // 1745768458
+			Summary       string `json:"summary"`        // ""
+			Words         int    `json:"words"`          // 162765
+			Read          int    `json:"read"`           // 55220355
+			ArticlesCount int    `json:"articles_count"` // 339
+			State         int    `json:"state"`          // 1
+			Reason        string `json:"reason"`         // ""
+			ApplyTime     string `json:"apply_time"`     // ""
+			CheckTime     string `json:"check_time"`     // ""
+		} `json:"lists"`
+		Total int `json:"total"` // 10
+	} `json:"data"`
+}
+
+// 查询用户专栏文集明细
+func GetArticleLists(uid int, credential *Credential) (result ArticleListsResponse, err error) {
+	err = cli.Result(ArticleLists{MID: uid, Credential: credential}, &result)
+	return
+}
+
+// 查询用户投稿音频明细
+type SongUpper struct {
+	req.Get
+
+	// 目标用户 UID
+	UID int `api:"query"`
+
+	// 页码
+	// 默认为 1
+	Pn int `api:"query:1"`
+
+	// 每页项数
+	// 默认为 30
+	Ps int `api:"query:30"`
+
+	// 排序方式
+	// 最新发布 1
+	// 最多播放 2
+	// 最多收藏 3
+	Order string `api:"query"`
+}
+
+func (SongUpper) RawURL() string {
+	return "https://api.bilibili.com/audio/music-service/web/song/upper"
+}
+
+type SongUpperResponse struct {
+	Error
+	Msg  string `json:"msg"` // "success"
+	Data struct {
+		CurPage   int `json:"curPage"`   // 1
+		PageCount int `json:"pageCount"` // 1
+		TotalSize int `json:"totalSize"` // 2
+		PageSize  int `json:"pageSize"`  // 2
+		Data      []struct {
+			ID         int    `json:"id"`         // 378521
+			UID        int    `json:"uid"`        // 8047632
+			Uname      string `json:"uname"`      // "哔哩哔哩弹幕网"
+			Author     string `json:"author"`     // ""
+			Title      string `json:"title"`      // "《B TOGETHER》-bilibili九周年主题曲"
+			Cover      string `json:"cover"`      // "http://i0.hdslb.com/bfs/music/109136c63e16d83fbad5ec9282a6fb96498d8144.jpg"
+			Intro      string `json:"intro"`      // ""
+			Lyric      string `json:"lyric"`      // "http://i0.hdslb.com/bfs/music/1529979007378521.lrc"
+			Crtype     int    `json:"crtype"`     // 1
+			Duration   int    `json:"duration"`   // 0
+			Passtime   int    `json:"passtime"`   // 1529928347
+			Curtime    int    `json:"curtime"`    // 0
+			AID        int    `json:"aid"`        // 0
+			BVID       string `json:"bvid"`       // ""
+			CID        int    `json:"cid"`        // 0
+			MsID       int    `json:"msid"`       // 0
+			Attr       int    `json:"attr"`       // 0
+			Limit      int    `json:"limit"`      // 0
+			ActivityID int    `json:"activityId"` // 0
+			Limitdesc  string `json:"limitdesc"`  // ""
+			CoinNum    int    `json:"coin_num"`   // 3640
+			Ctime      int64  `json:"ctime"`      // 1529928235000
+			Statistic  struct {
+				SID     int `json:"sid"`     // 378521
+				Play    int `json:"play"`    // 123582
+				Collect int `json:"collect"` // 5510
+				Comment int `json:"comment"` // 1591
+				Share   int `json:"share"`   // 535
+			} `json:"statistic"`
+			VipInfo    any `json:"vipInfo"`
+			CollectIds any `json:"collectIds"`
+			IsCooper   int `json:"is_cooper"` // 0
+		} `json:"data"`
+	} `json:"data"`
+}
+
+// 查询用户投稿音频明细
+func GetSongUpper(uid int) (result SongUpperResponse, err error) {
+	err = cli.Result(SongUpper{UID: uid}, &result)
+	return
+}
+
 // 做吐了 先做到这里吧
-// https://socialsisteryi.github.io/bilibili-API-collect/docs/user/space.html#%E8%AE%BE%E7%BD%AE%E7%A9%BA%E9%97%B4%E5%A4%B4%E5%9B%BE-web%E7%AB%AF
+// https://socialsisteryi.github.io/bilibili-API-collect/docs/user/space.html#%E9%A2%91%E9%81%93
