@@ -1629,19 +1629,20 @@ func GetMedalWall(uid int, credential *Credential) (result MedalWallResponse, er
 
 // 视频信息
 type VideoInfo struct {
-	AID       int    `json:"aid"`       // 78090377
-	Videos    int    `json:"videos"`    // 1
-	TID       int    `json:"tid"`       // 47
-	Tname     string `json:"tname"`     // "同人·手书"
-	Copyright int    `json:"copyright"` // 1
-	Pic       string `json:"pic"`       // "http://i2.hdslb.com/bfs/archive/7fe8272ef4c90d07ba2dba968638392f8d5bf490.jpg"
-	Title     string `json:"title"`     // "【七海】七海的偶像宣言／私、アイドル宣言【手书PV】"
-	Pubdate   int    `json:"pubdate"`   // 1575540036
-	Ctime     int    `json:"ctime"`     // 1575483142
-	Desc      string `json:"desc"`      // "本家：sm32825363 ...
-	State     int    `json:"state"`     // 0
-	Attribute int    `json:"attribute"` // 16793984
-	Duration  int    `json:"duration"`  // 268
+	AID       int    `json:"aid"`                  // 78090377
+	Videos    int    `json:"videos"`               // 1
+	TID       int    `json:"tid"`                  // 47
+	Tname     string `json:"tname"`                // "同人·手书"
+	Copyright int    `json:"copyright"`            // 1
+	Pic       string `json:"pic"`                  // "http://i2.hdslb.com/bfs/archive/7fe8272ef4c90d07ba2dba968638392f8d5bf490.jpg"
+	Title     string `json:"title"`                // "【七海】七海的偶像宣言／私、アイドル宣言【手书PV】"
+	Pubdate   int    `json:"pubdate"`              // 1575540036
+	Ctime     int    `json:"ctime"`                // 1575483142
+	Desc      string `json:"desc"`                 // "本家：sm32825363 ...
+	State     int    `json:"state"`                // 0
+	Attribute int    `json:"attribute"`            // 16793984
+	Duration  int    `json:"duration"`             // 268
+	MissionID int    `json:"mission_id,omitempty"` // 271861
 	Rights    struct {
 		Bp            int `json:"bp"`              // 0
 		Elec          int `json:"elec"`            // 0
@@ -1677,6 +1678,8 @@ type VideoInfo struct {
 		Dislike  int `json:"dislike"`  // 0
 		Vt       int `json:"vt"`       // 518998
 		Vv       int `json:"vv"`       // 403958
+		FavG     int `json:"fav_g"`    // 0
+		LikeG    int `json:"like_g"`   // 0
 	} `json:"stat"`
 	Dynamic   string `json:"dynamic"` // "脆脆鲨组从我关注数到1w的时候就开始企划的手书 ...
 	CID       int    `json:"cid"`     // 133606284
@@ -1685,19 +1688,30 @@ type VideoInfo struct {
 		Height int `json:"height"` // 1080
 		Rotate int `json:"rotate"` // 0
 	} `json:"dimension"`
-	ShortLinkV2      string `json:"short_link_v2"`     // "https://b23.tv/BV1vJ411B7ng"
-	VtDisplay        string `json:"vt_display"`        // "51.9万"
-	Cover43          string `json:"cover43"`           // ""
-	TIDv2            int    `json:"tidv2"`             // 2020
-	Tnamev2          string `json:"tnamev2"`           // "翻唱"
-	BVID             string `json:"bvid"`              // "BV1vJ411B7ng"
-	Reason           string `json:"reason"`            // ""
-	InterVideo       bool   `json:"inter_video"`       // false
-	IsChargingArc    bool   `json:"is_charging_arc"`   // false
-	ElecArcType      int    `json:"elec_arc_type"`     // 0
-	EnableVt         int    `json:"enable_vt"`         // 0
-	PlaybackPosition int    `json:"playback_position"` // 0
-	IsSelfView       bool   `json:"is_self_view"`      // false
+	ShortLinkV2      string `json:"short_link_v2"`          // "https://b23.tv/BV1vJ411B7ng"
+	UpFromV2         int    `json:"up_from_v2,omitempty"`   // 35
+	FirstFrame       string `json:"first_frame"`            // "http://i1.hdslb.com/bfs/storyff/n211202qn8mrsxajbj4fpwsrexvbo7ju_firsti.jpg"
+	PubLocation      string `json:"pub_location,omitempty"` // "广东"
+	VtDisplay        string `json:"vt_display"`             // "51.9万"
+	Cover43          string `json:"cover43"`                // ""
+	TIDv2            int    `json:"tidv2"`                  // 2020
+	Tnamev2          string `json:"tnamev2"`                // "翻唱"
+	PidV2            int    `json:"pid_v2"`                 // 1008
+	PidNameV2        string `json:"pid_name_v2"`            // "游戏"
+	BVID             string `json:"bvid"`                   // "BV1vJ411B7ng"
+	Coins            int    `json:"coins"`                  // 2
+	Time             int    `json:"time"`                   // 1745738818
+	IP               string `json:"ip"`                     // ""
+	InterVideo       bool   `json:"inter_video"`            // false
+	ResourceType     string `json:"resource_type"`          // "ugc"
+	Subtitle         string `json:"subtitle"`               // ""
+	EnableVt         int    `json:"enable_vt"`              // 0
+	SeasonID         int    `json:"season_id,omitempty"`    // 2832677
+	Reason           string `json:"reason"`                 // ""
+	IsChargingArc    bool   `json:"is_charging_arc"`        // false
+	ElecArcType      int    `json:"elec_arc_type"`          // 0
+	PlaybackPosition int    `json:"playback_position"`      // 0
+	IsSelfView       bool   `json:"is_self_view"`           // false
 }
 
 // 查询用户置顶视频
