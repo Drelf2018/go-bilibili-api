@@ -2215,6 +2215,67 @@ func (ArcSearch) RawURL() string {
 	return "/space/wbi/arc/search"
 }
 
+func (api *ArcSearch) ReadPage() (v ArcSearchResponse, err error) {
+	if api.Pn == 0 {
+		api.Pn = 1
+	}
+	err = cli.Result(api, &v)
+	if err != nil {
+		return
+	}
+	if len(v.Data.List.Vlist) == 0 {
+		err = ErrNoMorePage
+		return
+	}
+	api.Pn++
+	return
+}
+
+var _ PageReader[ArcSearchResponse] = (*ArcSearch)(nil)
+
+type ArcSearchVideo struct {
+	Comment          int    `json:"comment"`            // 44 评论数
+	TypeID           int    `json:"typeid"`             // 27 视频分区
+	Play             int    `json:"play"`               // 5258 播放数
+	Pic              string `json:"pic"`                // "http://i1.hdslb.com/bfs/archive/090bdea9fa9e5cacd78f50961e4db615d13cee5e.jpg" 视频封面
+	Subtitle         string `json:"subtitle"`           // ""
+	Description      string `json:"description"`        // "伊蕾娜生贺作品 不准骂我" 简介
+	Copyright        string `json:"copyright"`          // "1" 视频版权类型
+	Title            string `json:"title"`              // "我是灰之魔女伊蕾娜" 视频标题
+	Review           int    `json:"review"`             // 0
+	Author           string `json:"author"`             // "脆鲨12138" 视频UP主 是合作视频时不一定为目标用户
+	MID              int    `json:"mid"`                // 188888131 视频UP主UID 同上
+	Created          int    `json:"created"`            // 1729094460 投稿时间
+	Length           string `json:"length"`             // "00:18" 视频长度	MM:SS
+	VideoReview      int    `json:"video_review"`       // 2 视频弹幕数
+	AID              int64  `json:"aid"`                // 113315128938366
+	BVID             string `json:"bvid"`               // "BV1hxmwYDEJ6"
+	HideClick        bool   `json:"hide_click"`         // false
+	IsPay            int    `json:"is_pay"`             // 0
+	IsUnionVideo     int    `json:"is_union_video"`     // 0 是否为合作视频
+	IsSteinsGate     int    `json:"is_steins_gate"`     // 0
+	IsLivePlayback   int    `json:"is_live_playback"`   // 0
+	IsLessonVideo    int    `json:"is_lesson_video"`    // 0
+	IsLessonFinished int    `json:"is_lesson_finished"` // 0
+	LessonUpdateInfo string `json:"lesson_update_info"` // ""
+	JumpURL          string `json:"jump_url"`           // ""
+	Meta             any    `json:"meta"`
+	IsAvoided        int    `json:"is_avoided"`        // 0
+	SeasonID         int    `json:"season_id"`         // 0
+	Attribute        int    `json:"attribute"`         // 16640
+	IsChargingArc    bool   `json:"is_charging_arc"`   // false
+	ElecArcType      int    `json:"elec_arc_type"`     // 0
+	Vt               int    `json:"vt"`                // 0
+	EnableVt         int    `json:"enable_vt"`         // 0
+	VtDisplay        string `json:"vt_display"`        // ""
+	PlaybackPosition int    `json:"playback_position"` // 0
+	IsSelfView       bool   `json:"is_self_view"`      // false
+}
+
+func (v ArcSearchVideo) String() string {
+	return v.Title
+}
+
 type ArcSearchResponse struct {
 	Error
 	Data struct {
@@ -2225,44 +2286,7 @@ type ArcSearchResponse struct {
 				Count int    `json:"count"` // 13
 				Name  string `json:"name"`  // "游戏"
 			} `json:"tlist"`
-			Vlist []struct {
-				Comment          int    `json:"comment"`            // 44
-				TypeID           int    `json:"typeid"`             // 27
-				Play             int    `json:"play"`               // 5258
-				Pic              string `json:"pic"`                // "http://i1.hdslb.com/bfs/archive/090bdea9fa9e5cacd78f50961e4db615d13cee5e.jpg"
-				Subtitle         string `json:"subtitle"`           // ""
-				Description      string `json:"description"`        // "伊蕾娜生贺作品 不准骂我"
-				Copyright        string `json:"copyright"`          // "1"
-				Title            string `json:"title"`              // "我是灰之魔女伊蕾娜"
-				Review           int    `json:"review"`             // 0
-				Author           string `json:"author"`             // "脆鲨12138"
-				MID              int    `json:"mid"`                // 188888131
-				Created          int    `json:"created"`            // 1729094460
-				Length           string `json:"length"`             // "00:18"
-				VideoReview      int    `json:"video_review"`       // 2
-				AID              int64  `json:"aid"`                // 113315128938366
-				BVID             string `json:"bvid"`               // "BV1hxmwYDEJ6"
-				HideClick        bool   `json:"hide_click"`         // false
-				IsPay            int    `json:"is_pay"`             // 0
-				IsUnionVideo     int    `json:"is_union_video"`     // 0
-				IsSteinsGate     int    `json:"is_steins_gate"`     // 0
-				IsLivePlayback   int    `json:"is_live_playback"`   // 0
-				IsLessonVideo    int    `json:"is_lesson_video"`    // 0
-				IsLessonFinished int    `json:"is_lesson_finished"` // 0
-				LessonUpdateInfo string `json:"lesson_update_info"` // ""
-				JumpURL          string `json:"jump_url"`           // ""
-				Meta             any    `json:"meta"`
-				IsAvoided        int    `json:"is_avoided"`        // 0
-				SeasonID         int    `json:"season_id"`         // 0
-				Attribute        int    `json:"attribute"`         // 16640
-				IsChargingArc    bool   `json:"is_charging_arc"`   // false
-				ElecArcType      int    `json:"elec_arc_type"`     // 0
-				Vt               int    `json:"vt"`                // 0
-				EnableVt         int    `json:"enable_vt"`         // 0
-				VtDisplay        string `json:"vt_display"`        // ""
-				PlaybackPosition int    `json:"playback_position"` // 0
-				IsSelfView       bool   `json:"is_self_view"`      // false
-			} `json:"vlist"`
+			Vlist []ArcSearchVideo `json:"vlist"`
 		} `json:"list"`
 		Page struct {
 			Pn    int `json:"pn"`    // 1
@@ -2312,6 +2336,24 @@ type Article struct {
 func (Article) RawURL() string {
 	return "/space/wbi/article"
 }
+
+func (api *Article) ReadPage() (v ArticleResponse, err error) {
+	if api.Pn == 0 {
+		api.Pn = 1
+	}
+	err = cli.Result(api, &v)
+	if err != nil {
+		return
+	}
+	if len(v.Data.Articles) == 0 {
+		err = ErrNoMorePage
+		return
+	}
+	api.Pn++
+	return
+}
+
+var _ PageReader[ArticleResponse] = (*Article)(nil)
 
 type ArticleResponse struct {
 	Error
@@ -2498,6 +2540,24 @@ type SongUpper struct {
 func (SongUpper) RawURL() string {
 	return "https://api.bilibili.com/audio/music-service/web/song/upper"
 }
+
+func (api *SongUpper) ReadPage() (v SongUpperResponse, err error) {
+	if api.Pn == 0 {
+		api.Pn = 1
+	}
+	err = cli.Result(api, &v)
+	if err != nil {
+		return
+	}
+	if len(v.Data.Data) == 0 {
+		err = ErrNoMorePage
+		return
+	}
+	api.Pn++
+	return
+}
+
+var _ PageReader[SongUpperResponse] = (*SongUpper)(nil)
 
 type SongUpperResponse struct {
 	Error
