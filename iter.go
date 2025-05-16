@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"math/rand"
 	"time"
 )
 
@@ -23,11 +24,18 @@ type PageReader[V any] interface {
 // 但这不代表我这个 go1.18 的库不能先写出这样的函数来🤭
 func ReadPage[V any](api PageReader[V], interval ...time.Duration) func(func(V) bool) {
 	return func(yield func(V) bool) {
-		var duration time.Duration
-		for _, i := range interval {
-			duration += i
-		}
 		for v, err := api.ReadPage(); err == nil && yield(v); v, err = api.ReadPage() {
+			var duration time.Duration
+			for i, d := range interval {
+				if d <= 0 {
+					continue
+				}
+				if i == 0 {
+					duration = d
+				} else {
+					duration += time.Duration(rand.Int63n(int64(d)) / (1 << i))
+				}
+			}
 			time.Sleep(duration)
 		}
 	}
