@@ -1,6 +1,7 @@
-package api
+package bilibili
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
@@ -9,6 +10,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"net/http"
 	"regexp"
 	"time"
 
@@ -38,7 +40,7 @@ type GenerateResponse struct {
 
 // 申请二维码
 func GetGenerate() (result GenerateResponse, err error) {
-	err = cli.Result(Generate{}, &result)
+	err = session.Result(Generate{}, &result)
 	return
 }
 
@@ -50,7 +52,7 @@ type Poll struct {
 	*Credential
 
 	// 先前生成的二维码密钥
-	QRCodeKey string `api:"query" req:"qrcode_key"`
+	QRCodeKey string `req:"query:qrcode_key"`
 }
 
 func (Poll) RawURL() string {
@@ -77,7 +79,7 @@ func (r PollResponse) Unwrap() error {
 
 // 登录成功后会自动将 Cookie 值写入 credential 变量中
 func GetPoll(qrcodeKey string, credential *Credential) (result PollResponse, err error) {
-	err = cli.Result(Poll{QRCodeKey: qrcodeKey, Credential: credential}, &result)
+	err = session.Result(Poll{QRCodeKey: qrcodeKey, Credential: credential}, &result)
 	if err == nil {
 		credential.RefreshToken = result.Data.RefreshToken
 	}
@@ -96,7 +98,7 @@ func GetCredential(qrcodeKey string) (*Credential, error) {
 // 导航栏用户信息
 type Nav struct {
 	req.Get
-	*Credential
+	http.CookieJar
 }
 
 func (Nav) RawURL() string {
@@ -230,10 +232,15 @@ type NavResponseSimple struct {
 	} `json:"data"`
 }
 
-// 导航栏用户信息
-func GetNav(credential *Credential) (result NavResponseSimple, err error) {
-	err = cli.Result(Nav{Credential: credential}, &result)
+// 携带上下文导航栏用户信息
+func GetNavWithContext(ctx context.Context, jar http.CookieJar) (result NavResponseSimple, err error) {
+	err = session.ResultWithContext(ctx, Nav{CookieJar: jar}, &result)
 	return
+}
+
+// 导航栏用户信息
+func GetNav(jar http.CookieJar) (NavResponseSimple, error) {
+	return GetNavWithContext(context.Background(), jar)
 }
 
 // 登录用户状态数
@@ -257,7 +264,7 @@ type NavStatResponse struct {
 
 // 登录用户状态数
 func GetNavStat(credential *Credential) (result NavStatResponse, err error) {
-	err = cli.Result(NavStat{Credential: credential}, &result)
+	err = session.Result(NavStat{Credential: credential}, &result)
 	return
 }
 
@@ -281,7 +288,7 @@ type CoinResponse struct {
 
 // 获取硬币数
 func GetCoin(credential *Credential) (result CoinResponse, err error) {
-	err = cli.Result(Coin{Credential: credential}, &result)
+	err = session.Result(Coin{Credential: credential}, &result)
 	return
 }
 
@@ -313,7 +320,7 @@ type AccountResponse struct {
 
 // 获取我的信息
 func GetAccount(credential *Credential) (result AccountResponse, err error) {
-	err = cli.Result(Account{Credential: credential}, &result)
+	err = session.Result(Account{Credential: credential}, &result)
 	return
 }
 
@@ -343,7 +350,7 @@ type RewardResponse struct {
 
 // 查询每日奖励状态
 func GetReward(credential *Credential) (result RewardResponse, err error) {
-	err = cli.Result(Reward{Credential: credential}, &result)
+	err = session.Result(Reward{Credential: credential}, &result)
 	return
 }
 
@@ -396,7 +403,7 @@ type WebUserInfoResponse struct {
 
 // 查询大会员状态
 func GetWebUserInfo(credential *Credential) (result WebUserInfoResponse, err error) {
-	err = cli.Result(WebUserInfo{Credential: credential}, &result)
+	err = session.Result(WebUserInfo{Credential: credential}, &result)
 	return
 }
 
@@ -442,7 +449,7 @@ type SiteUserInfoResponse struct {
 
 // 查询账号安全情况
 func GetSiteUserInfo(credential *Credential) (result SiteUserInfoResponse, err error) {
-	err = cli.Result(SiteUserInfo{Credential: credential}, &result)
+	err = session.Result(SiteUserInfo{Credential: credential}, &result)
 	return
 }
 
@@ -465,7 +472,7 @@ type RealnameStatusResponse struct {
 
 // 查询账号实名认证状态
 func GetRealnameStatus(credential *Credential) (result RealnameStatusResponse, err error) {
-	err = cli.Result(RealnameStatus{Credential: credential}, &result)
+	err = session.Result(RealnameStatus{Credential: credential}, &result)
 	return
 }
 
@@ -492,7 +499,7 @@ type ApplyStatusResponse struct {
 
 // 查询实名认证详细信息
 func GetApplyStatus(credential *Credential) (result ApplyStatusResponse, err error) {
-	err = cli.Result(ApplyStatus{Credential: credential}, &result)
+	err = session.Result(ApplyStatus{Credential: credential}, &result)
 	return
 }
 
@@ -520,7 +527,7 @@ type CoinLogResponse struct {
 
 // 查询硬币变化情况
 func GetCoinLog(credential *Credential) (result CoinLogResponse, err error) {
-	err = cli.Result(CoinLog{Credential: credential}, &result)
+	err = session.Result(CoinLog{Credential: credential}, &result)
 	return
 }
 
@@ -530,7 +537,7 @@ type SignUpdate struct {
 	*Credential
 
 	// 要设置的签名内容 可为空
-	UserSign string `api:"body"`
+	UserSign string `req:"body"`
 }
 
 func (SignUpdate) RawURL() string {
@@ -543,7 +550,7 @@ type SignUpdateResponse struct {
 
 // 修改个人签名
 func PostSignUpdate(sign string, credential *Credential) (result SignUpdateResponse, err error) {
-	err = cli.Result(SignUpdate{UserSign: sign, Credential: credential}, &result)
+	err = session.Result(SignUpdate{UserSign: sign, Credential: credential}, &result)
 	return
 }
 
@@ -552,8 +559,8 @@ type EXPLog struct {
 	req.Get
 	*Credential
 
-	JSONP       string `api:"query:jsonp"`
-	WebLocation string `api:"query:333.33"`
+	JSONP       string `req:"query" default:"jsonp"`
+	WebLocation string `req:"query" default:"333.33"`
 }
 
 func (EXPLog) RawURL() string {
@@ -574,7 +581,7 @@ type EXPLogResponse struct {
 
 // 最近一周的经验记录
 func GetEXPLog(credential *Credential) (result EXPLogResponse, err error) {
-	err = cli.Result(EXPLog{Credential: credential}, &result)
+	err = session.Result(EXPLog{Credential: credential}, &result)
 	return
 }
 
@@ -583,8 +590,8 @@ type MoralLog struct {
 	req.Get
 	*Credential
 
-	JSONP       string `api:"query:jsonp"`
-	WebLocation string `api:"query:333.33"`
+	JSONP       string `req:"query" default:"jsonp"`
+	WebLocation string `req:"query" default:"333.33"`
 }
 
 func (MoralLog) RawURL() string {
@@ -602,7 +609,7 @@ type MoralLogResponse struct {
 
 // 最近一周的节操记录
 func GetMoralLog(credential *Credential) (result MoralLogResponse, err error) {
-	err = cli.Result(MoralLog{Credential: credential}, &result)
+	err = session.Result(MoralLog{Credential: credential}, &result)
 	return
 }
 
@@ -614,10 +621,10 @@ type LoginNotice struct {
 	*Credential
 
 	// 用户 UID（一般是自己的）
-	MID int `api:"query"`
+	MID int `req:"query"`
 
 	// 设备虚拟 ID 可为空
-	Buvid3 string `api:"query"`
+	Buvid3 string `req:"query"`
 }
 
 func (LoginNotice) RawURL() string {
@@ -638,7 +645,7 @@ type LoginNoticeResponse struct {
 
 // 查询登录记录
 func GetLoginNotice(credential *Credential) (result LoginNoticeResponse, err error) {
-	err = cli.Result(LoginNotice{MID: credential.UID(), Credential: credential}, &result)
+	err = session.Result(LoginNotice{MID: credential.UID(), Credential: credential}, &result)
 	return
 }
 
@@ -647,8 +654,8 @@ type LoginLog struct {
 	req.Get
 	*Credential
 
-	JSONP       string `api:"query:jsonp"`
-	WebLocation string `api:"query:333.33"`
+	JSONP       string `req:"query" default:"jsonp"`
+	WebLocation string `req:"query" default:"333.33"`
 }
 
 func (LoginLog) RawURL() string {
@@ -672,7 +679,7 @@ type LoginLogResponse struct {
 
 // 最近一周的登录情况
 func GetLoginLog(credential *Credential) (result LoginLogResponse, err error) {
-	err = cli.Result(LoginLog{Credential: credential}, &result)
+	err = session.Result(LoginLog{Credential: credential}, &result)
 	return
 }
 
@@ -681,7 +688,7 @@ func GetLoginLog(credential *Credential) (result LoginLogResponse, err error) {
 // 检查是否需要刷新
 type CookieInfo struct {
 	req.Get
-	*Credential
+	http.CookieJar
 }
 
 func (CookieInfo) RawURL() string {
@@ -696,10 +703,15 @@ type CookieInfoResponse struct {
 	} `json:"data"`
 }
 
-// 检查是否需要刷新
-func GetCookieInfo(credential *Credential) (result CookieInfoResponse, err error) {
-	err = cli.Result(CookieInfo{Credential: credential}, &result)
+// 携带上下文检查是否需要刷新
+func GetCookieInfoWithContext(ctx context.Context, jar http.CookieJar) (result CookieInfoResponse, err error) {
+	err = session.ResultWithContext(ctx, CookieInfo{CookieJar: jar}, &result)
 	return
+}
+
+// 检查是否需要刷新
+func GetCookieInfo(jar http.CookieJar) (CookieInfoResponse, error) {
+	return GetCookieInfoWithContext(context.Background(), jar)
 }
 
 //go:embed pubkey.pem
@@ -729,7 +741,7 @@ func GetCorrespondPath(ts int64) (string, error) {
 // 获取 refresh_csrf
 type Correspond struct {
 	req.Get
-	*Credential
+	http.CookieJar
 
 	// 通过 GetCorrespondPath 获取
 	CorrespondPath string
@@ -741,15 +753,15 @@ func (c Correspond) RawURL() string {
 
 var refreshCSRFPattern = regexp.MustCompile(`<div id="1-name">(.*?)</div>`)
 
-var ErrRefreshCSRFNotExist = errors.New("api: refresh_csrf does not exist")
+var ErrRefreshCSRFNotExist = errors.New("bilibili: refresh_csrf does not exist")
 
 // 获取 refresh_csrf
-func GetRefreshCSRF(credential *Credential) (string, error) {
+func GetRefreshCSRFWithContext(ctx context.Context, jar http.CookieJar) (string, error) {
 	path, err := GetCorrespondPath(time.Now().UnixMilli())
 	if err != nil {
 		return "", err
 	}
-	s, err := cli.Text(Correspond{CorrespondPath: path, Credential: credential})
+	s, err := session.TextWithContext(ctx, Correspond{CorrespondPath: path, CookieJar: jar})
 	if err != nil {
 		return "", err
 	}
@@ -760,20 +772,24 @@ func GetRefreshCSRF(credential *Credential) (string, error) {
 	return r[1], nil
 }
 
+func GetRefreshCSRF(jar http.CookieJar) (string, error) {
+	return GetRefreshCSRFWithContext(context.Background(), jar)
+}
+
 // 刷新 Cookie
 type CookieRefresh struct {
 	PostCSRF
-	*Credential
+	http.CookieJar
 
 	// 实时刷新口令
 	// 通过 GetRefreshCSRF 获得
-	RefreshCSRF string `api:"body" req:"refresh_csrf"`
+	RefreshCSRF string `req:"body:refresh_csrf"`
 
 	// 访问来源 默认值 main_web
-	Source string `api:"body:main_web"`
+	Source string `req:"body" default:"main_web"`
 
 	// 持久化刷新口令
-	RefreshToken string `api:"body"`
+	RefreshToken string `req:"body"`
 }
 
 func (CookieRefresh) RawURL() string {
@@ -790,26 +806,26 @@ type CookieRefreshResponse struct {
 }
 
 // 刷新 Cookie
-func PostCookieRefresh(credential *Credential) (result CookieRefreshResponse, err error) {
-	key, err := GetRefreshCSRF(credential)
+func PostCookieRefreshWithContext(ctx context.Context, token string, jar http.CookieJar) (result CookieRefreshResponse, err error) {
+	key, err := GetRefreshCSRFWithContext(ctx, jar)
 	if err != nil {
 		return
 	}
-	err = cli.Result(CookieRefresh{
-		RefreshCSRF:  key,
-		RefreshToken: credential.RefreshToken,
-		Credential:   credential,
-	}, &result)
+	err = session.ResultWithContext(ctx, CookieRefresh{RefreshCSRF: key, RefreshToken: token, CookieJar: jar}, &result)
 	return
+}
+
+func PostCookieRefresh(token string, jar http.CookieJar) (result CookieRefreshResponse, err error) {
+	return PostCookieRefreshWithContext(context.Background(), token, jar)
 }
 
 // 确认更新
 type ConfirmRefresh struct {
 	PostCSRF
-	*Credential
+	http.CookieJar
 
 	// 旧的持久化刷新口令
-	RefreshToken string `api:"body"`
+	RefreshToken string `req:"body"`
 }
 
 func (ConfirmRefresh) RawURL() string {
@@ -820,15 +836,18 @@ type ConfirmRefreshResponse struct {
 	Error
 }
 
-// 确认更新
-func PostConfirmRefresh(credential *Credential) error {
-	r, err := PostCookieRefresh(credential)
+// 携带上下文确认更新
+func PostConfirmRefreshWithContext(ctx context.Context, token string, jar http.CookieJar) (newRefreshToken string, err error) {
+	r, err := PostCookieRefreshWithContext(ctx, token, jar)
 	if err != nil {
-		return err
+		return "", err
 	}
-	err = cli.Result(ConfirmRefresh{RefreshToken: credential.RefreshToken, Credential: credential}, new(ConfirmRefreshResponse))
-	if err == nil {
-		credential.RefreshToken = r.Data.RefreshToken
-	}
-	return err
+	newRefreshToken = r.Data.RefreshToken
+	err = session.ResultWithContext(ctx, ConfirmRefresh{RefreshToken: token, CookieJar: jar}, &ConfirmRefreshResponse{})
+	return
+}
+
+// 确认更新
+func PostConfirmRefresh(token string, jar http.CookieJar) (string, error) {
+	return PostConfirmRefreshWithContext(context.Background(), token, jar)
 }

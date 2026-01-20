@@ -1,4 +1,4 @@
-package api
+package bilibili
 
 import (
 	"errors"
@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-var ErrNoMorePage = errors.New("api: no more page")
+var ErrNoMorePage = errors.New("bilibili: no more page")
 
 // 页读器
 type PageReader[V any] interface {

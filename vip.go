@@ -1,4 +1,4 @@
-package api
+package bilibili
 
 import "github.com/Drelf2018/req"
 
@@ -59,7 +59,7 @@ type MyResponse struct {
 
 // 卡券状态查询
 func GetMy(credential *Credential) (result MyResponse, err error) {
-	err = cli.Result(My{Credential: credential}, &result)
+	err = session.Result(My{Credential: credential}, &result)
 	return
 }
 
@@ -71,10 +71,10 @@ type VIPCenterCombine struct {
 	*Credential
 
 	// 平台 web端(web) 安卓APP(android)
-	Platform string `api:"query,omitempty"`
+	Platform string `req:"query,omitempty"`
 
-	Build   int    `api:"query,omitempty"`
-	MobiApp string `api:"query,omitempty"`
+	Build   int    `req:"query,omitempty"`
+	MobiApp string `req:"query,omitempty"`
 }
 
 func (VIPCenterCombine) RawURL() string {
@@ -379,7 +379,7 @@ type VIPCenterCombineResponse struct {
 
 // 大会员中心信息
 func GetVIPCenterCombine(credential *Credential) (result VIPCenterCombineResponse, err error) {
-	err = cli.Result(VIPCenterCombine{Credential: credential}, &result)
+	err = session.Result(VIPCenterCombine{Credential: credential}, &result)
 	return
 }
 
@@ -486,7 +486,7 @@ type HomepageCombineResponse struct {
 
 // 大积分中心信息
 func GetHomepageCombine(credential *Credential) (result HomepageCombineResponse, err error) {
-	err = cli.Result(HomepageCombine{Credential: credential}, &result)
+	err = session.Result(HomepageCombine{Credential: credential}, &result)
 	return
 }
 
@@ -499,13 +499,13 @@ type VIPPointList struct {
 	// (0)所有类型
 	// (1)获取记录
 	// (2)消耗记录
-	ChangeType int `api:"query:0"`
+	ChangeType int `req:"query" default:"0"`
 
 	// 分页页数
-	Pn int `api:"query:1"`
+	Pn int `req:"query" default:"1"`
 
 	// 分页大小
-	Ps int `api:"query:20"`
+	Ps int `req:"query" default:"20"`
 }
 
 func (VIPPointList) RawURL() string {
@@ -516,7 +516,7 @@ func (api *VIPPointList) ReadPage() (v VIPPointListResponse, err error) {
 	if api.Pn == 0 {
 		api.Pn = 1
 	}
-	err = cli.Result(api, &v)
+	err = session.Result(api, &v)
 	if err != nil {
 		return
 	}
@@ -546,7 +546,7 @@ type VIPPointListResponse struct {
 
 // 大积分改变记录
 func GetVIPPointList(credential *Credential) (result VIPPointListResponse, err error) {
-	err = cli.Result(VIPPointList{Credential: credential}, &result)
+	err = session.Result(VIPPointList{Credential: credential}, &result)
 	return
 }
 
@@ -568,7 +568,7 @@ type TaskSignResponse struct {
 
 // 大积分签到
 func PostTaskSign(credential *Credential) (result TaskSignResponse, err error) {
-	err = cli.Result(TaskSign{Credential: credential}, &result)
+	err = session.Result(TaskSign{Credential: credential}, &result)
 	return
 }
 
@@ -594,6 +594,6 @@ type VIPEXPAddResponse struct {
 
 // 大会员每日经验
 func PostVIPEXPAdd(credential *Credential) (result VIPEXPAddResponse, err error) {
-	err = cli.Result(VIPEXPAdd{Credential: credential}, &result)
+	err = session.Result(VIPEXPAdd{Credential: credential}, &result)
 	return
 }

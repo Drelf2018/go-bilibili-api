@@ -1,4 +1,4 @@
-package api
+package bilibili
 
 import (
 	"strconv"
@@ -15,7 +15,7 @@ type AccInfo struct {
 	*Credential
 
 	// 目标用户 UID
-	MID int `api:"query"`
+	MID int `req:"query"`
 }
 
 func (AccInfo) RawURL() string {
@@ -171,7 +171,7 @@ type AccInfoResponse struct {
 
 // 用户空间详细信息
 func GetAccInfo(uid int, credential *Credential) (result AccInfoResponse, err error) {
-	err = cli.Result(AccInfo{MID: uid, Credential: credential}, &result)
+	err = session.Result(AccInfo{MID: uid, Credential: credential}, &result)
 	return
 }
 
@@ -181,10 +181,10 @@ type Card struct {
 	*Credential
 
 	// 目标用户 UID
-	MID int `api:"query"`
+	MID int `req:"query"`
 
 	// 是否请求用户主页头图
-	Photo bool `api:"query"`
+	Photo bool `req:"query"`
 }
 
 func (Card) RawURL() string {
@@ -300,7 +300,7 @@ type CardResponse struct {
 
 // 用户名片信息
 func GetCard(uid int, credential *Credential) (result CardResponse, err error) {
-	err = cli.Result(Card{MID: uid, Photo: true, Credential: credential}, &result)
+	err = session.Result(Card{MID: uid, Photo: true, Credential: credential}, &result)
 	return
 }
 
@@ -455,7 +455,7 @@ type MyInfoResponse struct {
 
 // 登录用户空间详细信息
 func GetMyInfo(credential *Credential) (result MyInfoResponse, err error) {
-	err = cli.Result(MyInfo{Credential: credential}, &result)
+	err = session.Result(MyInfo{Credential: credential}, &result)
 	return
 }
 
@@ -466,7 +466,7 @@ type CardMap struct {
 
 	// 目标用户的 UID 列表 用(,)间隔
 	// 最多200个成员
-	UIDs string `api:"query"`
+	UIDs string `req:"query"`
 }
 
 func (CardMap) RawURL() string {
@@ -524,7 +524,7 @@ type CardMapResponse struct {
 
 // 多用户详细信息字典
 func GetCardMap(uid []int, credential *Credential) (result CardMapResponse, err error) {
-	err = cli.Result(CardMap{UIDs: IntSliceToString(uid), Credential: credential}, &result)
+	err = session.Result(CardMap{UIDs: IntSliceToString(uid), Credential: credential}, &result)
 	return
 }
 
@@ -535,7 +535,7 @@ type CardSlice struct {
 
 	// 目标用户的 UID 列表 用(,)间隔
 	// 最多 50 个成员
-	UIDs string `api:"query"`
+	UIDs string `req:"query"`
 }
 
 func (CardSlice) RawURL() string {
@@ -557,7 +557,7 @@ type CardSliceResponse struct {
 
 // 多用户详细信息切片
 func GetCardSlice(uid []int, credential *Credential) (result CardSliceResponse, err error) {
-	err = cli.Result(CardSlice{UIDs: IntSliceToString(uid), Credential: credential}, &result)
+	err = session.Result(CardSlice{UIDs: IntSliceToString(uid), Credential: credential}, &result)
 	return
 }
 
@@ -569,7 +569,7 @@ type RelationStat struct {
 	*Credential
 
 	// 目标用户 UID
-	Vmid int `api:"query"`
+	Vmid int `req:"query"`
 }
 
 func (RelationStat) RawURL() string {
@@ -589,7 +589,7 @@ type RelationStatResponse struct {
 
 // 关系状态数
 func GetRelationStat(uid int, credential *Credential) (result RelationStatResponse, err error) {
-	err = cli.Result(RelationStat{Vmid: uid, Credential: credential}, &result)
+	err = session.Result(RelationStat{Vmid: uid, Credential: credential}, &result)
 	return
 }
 
@@ -599,7 +599,7 @@ type UPStat struct {
 	*Credential
 
 	// 目标用户 UID
-	MID int `api:"query"`
+	MID int `req:"query"`
 }
 
 func (UPStat) RawURL() string {
@@ -623,7 +623,7 @@ type UPStatResponse struct {
 
 // UP 主状态数
 func GetUPStat(uid int, credential *Credential) (result UPStatResponse, err error) {
-	err = cli.Result(UPStat{MID: uid, Credential: credential}, &result)
+	err = session.Result(UPStat{MID: uid, Credential: credential}, &result)
 	return
 }
 
@@ -638,7 +638,7 @@ type NavNum struct {
 	req.Get
 
 	// 目标用户 UID
-	MID int `api:"query"`
+	MID int `req:"query"`
 }
 
 func (NavNum) RawURL() string {
@@ -650,7 +650,7 @@ type UploadCount struct {
 	req.Get
 
 	// 目标用户 UID
-	UID int `api:"query"`
+	UID int `req:"query"`
 }
 
 func (UploadCount) RawURL() string {
@@ -669,7 +669,7 @@ type UploadCountResponse struct {
 
 // 相簿投稿数
 func GetUploadCount(uid int) (result UploadCountResponse, err error) {
-	err = cli.Result(UploadCount{UID: uid}, &result)
+	err = session.Result(UploadCount{UID: uid}, &result)
 	return
 }
 
@@ -820,13 +820,13 @@ type Followers struct {
 	*Credential
 
 	// 目标用户 UID
-	Vmid int `api:"query"`
+	Vmid int `req:"query"`
 
 	// 分页页数 仅可查看前 1000 名粉丝
-	Pn int `api:"query:1"`
+	Pn int `req:"query" default:"1"`
 
 	// 分页大小
-	Ps int `api:"query:50"`
+	Ps int `req:"query" default:"50"`
 }
 
 func (Followers) RawURL() string {
@@ -837,7 +837,7 @@ func (api *Followers) ReadPage() (v FollowersResponse, err error) {
 	if api.Pn == 0 {
 		api.Pn = 1
 	}
-	err = cli.Result(api, &v)
+	err = session.Result(api, &v)
 	if err != nil {
 		return
 	}
@@ -862,7 +862,7 @@ type FollowersResponse struct {
 
 // 查询用户粉丝明细
 func GetFollowers(uid int, credential *Credential) (result FollowersResponse, err error) {
-	err = cli.Result(Followers{Vmid: uid, Credential: credential}, &result)
+	err = session.Result(Followers{Vmid: uid, Credential: credential}, &result)
 	return
 }
 
@@ -872,18 +872,18 @@ type RelationFollowings struct {
 	*Credential
 
 	// 目标用户 UID
-	Vmid int `api:"query"`
+	Vmid int `req:"query"`
 
 	// 排序方式 当目标用户为自己时有效
 	// ("")按照关注顺序排列
 	// ("attention")按照最常访问排列
-	OrderType string `api:"query,omitempty"`
+	OrderType string `req:"query,omitempty"`
 
 	// 分页页数
-	Pn int `api:"query:1"`
+	Pn int `req:"query" default:"1"`
 
 	// 分页大小
-	Ps int `api:"query:50"`
+	Ps int `req:"query" default:"50"`
 }
 
 func (RelationFollowings) RawURL() string {
@@ -894,7 +894,7 @@ func (api *RelationFollowings) ReadPage() (v RelationFollowingsResponse, err err
 	if api.Pn == 0 {
 		api.Pn = 1
 	}
-	err = cli.Result(api, &v)
+	err = session.Result(api, &v)
 	if err != nil {
 		return
 	}
@@ -919,7 +919,7 @@ type RelationFollowingsResponse struct {
 
 // 查询用户关注明细
 func GetRelationFollowings(uid int, credential *Credential) (result RelationFollowingsResponse, err error) {
-	err = cli.Result(RelationFollowings{Vmid: uid, Credential: credential}, &result)
+	err = session.Result(RelationFollowings{Vmid: uid, Credential: credential}, &result)
 	return
 }
 
@@ -929,16 +929,16 @@ type FollowingsSearch struct {
 	*Credential
 
 	// 目标用户 UID
-	Vmid int `api:"query"`
+	Vmid int `req:"query"`
 
 	// 搜索关键词
-	Name string `api:"query"`
+	Name string `req:"query"`
 
 	// 分页页数
-	Pn int `api:"query:1"`
+	Pn int `req:"query" default:"1"`
 
 	// 分页大小
-	Ps int `api:"query:50"`
+	Ps int `req:"query" default:"50"`
 }
 
 func (FollowingsSearch) RawURL() string {
@@ -949,7 +949,7 @@ func (api *FollowingsSearch) ReadPage() (v FollowingsSearchResponse, err error) 
 	if api.Pn == 0 {
 		api.Pn = 1
 	}
-	err = cli.Result(api, &v)
+	err = session.Result(api, &v)
 	if err != nil {
 		return
 	}
@@ -973,7 +973,7 @@ type FollowingsSearchResponse struct {
 
 // 搜索关注明细
 func GetFollowingsSearch(uid int, name string, credential *Credential) (result FollowingsSearchResponse, err error) {
-	err = cli.Result(FollowingsSearch{Vmid: uid, Name: name, Credential: credential}, &result)
+	err = session.Result(FollowingsSearch{Vmid: uid, Name: name, Credential: credential}, &result)
 	return
 }
 
@@ -983,13 +983,13 @@ type SameFollowings struct {
 	*Credential
 
 	// 目标用户 UID
-	Vmid int `api:"query"`
+	Vmid int `req:"query"`
 
 	// 分页页数
-	Pn int `api:"query:1"`
+	Pn int `req:"query" default:"1"`
 
 	// 分页大小
-	Ps int `api:"query:50"`
+	Ps int `req:"query" default:"50"`
 }
 
 func (SameFollowings) RawURL() string {
@@ -1000,7 +1000,7 @@ func (api *SameFollowings) ReadPage() (v SameFollowingsResponse, err error) {
 	if api.Pn == 0 {
 		api.Pn = 1
 	}
-	err = cli.Result(api, &v)
+	err = session.Result(api, &v)
 	if err != nil {
 		return
 	}
@@ -1025,7 +1025,7 @@ type SameFollowingsResponse struct {
 
 // 查询共同关注明细
 func GetSameFollowings(uid int, credential *Credential) (result SameFollowingsResponse, err error) {
-	err = cli.Result(SameFollowings{Vmid: uid, Credential: credential}, &result)
+	err = session.Result(SameFollowings{Vmid: uid, Credential: credential}, &result)
 	return
 }
 
@@ -1049,7 +1049,7 @@ type WhispersResponse struct {
 
 // 查询悄悄关注明细
 func GetWhispers(credential *Credential) (result WhispersResponse, err error) {
-	err = cli.Result(Whispers{Credential: credential}, &result)
+	err = session.Result(Whispers{Credential: credential}, &result)
 	return
 }
 
@@ -1073,7 +1073,7 @@ type FriendsResponse struct {
 
 // 查询互相关注明细
 func GetFriends(credential *Credential) (result FriendsResponse, err error) {
-	err = cli.Result(Friends{Credential: credential}, &result)
+	err = session.Result(Friends{Credential: credential}, &result)
 	return
 }
 
@@ -1083,10 +1083,10 @@ type Blacks struct {
 	*Credential
 
 	// 分页页数
-	Pn int `api:"query:1"`
+	Pn int `req:"query" default:"1"`
 
 	// 分页大小
-	Ps int `api:"query:50"`
+	Ps int `req:"query" default:"50"`
 }
 
 func (Blacks) RawURL() string {
@@ -1097,7 +1097,7 @@ func (api *Blacks) ReadPage() (v BlacksResponse, err error) {
 	if api.Pn == 0 {
 		api.Pn = 1
 	}
-	err = cli.Result(api, &v)
+	err = session.Result(api, &v)
 	if err != nil {
 		return
 	}
@@ -1122,7 +1122,7 @@ type BlacksResponse struct {
 
 // 查询黑名单明细
 func GetBlacks(credential *Credential) (result BlacksResponse, err error) {
-	err = cli.Result(Blacks{Credential: credential}, &result)
+	err = session.Result(Blacks{Credential: credential}, &result)
 	return
 }
 
@@ -1178,7 +1178,7 @@ type Relation struct {
 	*Credential
 
 	// 目标用户 UID
-	FID int `api:"query"`
+	FID int `req:"query"`
 }
 
 func (Relation) RawURL() string {
@@ -1192,7 +1192,7 @@ type RelationResponse struct {
 
 // 查询用户与自己关系（仅关注）
 func GetRelation(uid int, credential *Credential) (result RelationResponse, err error) {
-	err = cli.Result(Relation{FID: uid, Credential: credential}, &result)
+	err = session.Result(Relation{FID: uid, Credential: credential}, &result)
 	return
 }
 
@@ -1202,7 +1202,7 @@ type AccRelation struct {
 	*Credential
 
 	// 目标用户 UID
-	MID int `api:"query"`
+	MID int `req:"query"`
 }
 
 func (AccRelation) RawURL() string {
@@ -1219,7 +1219,7 @@ type AccRelationResponse struct {
 
 // 查询用户与自己关系（互相关系）
 func GetAccRelation(uid int, credential *Credential) (result AccRelationResponse, err error) {
-	err = cli.Result(AccRelation{MID: uid, Credential: credential}, &result)
+	err = session.Result(AccRelation{MID: uid, Credential: credential}, &result)
 	return
 }
 
@@ -1229,7 +1229,7 @@ type Relations struct {
 	*Credential
 
 	// 目标用户 UID 用(,)间隔
-	FIDs string `api:"query"`
+	FIDs string `req:"query"`
 }
 
 func (Relations) RawURL() string {
@@ -1243,7 +1243,7 @@ type RelationsResponse struct {
 
 // 批量查询用户与自己关系
 func GetRelations(uid []int, credential *Credential) (result RelationsResponse, err error) {
-	err = cli.Result(Relations{FIDs: IntSliceToString(uid), Credential: credential}, &result)
+	err = session.Result(Relations{FIDs: IntSliceToString(uid), Credential: credential}, &result)
 	return
 }
 
@@ -1269,7 +1269,7 @@ type TagsResponse struct {
 
 // 查询关注分组列表
 func GetTags(credential *Credential) (result TagsResponse, err error) {
-	err = cli.Result(Tags{Credential: credential}, &result)
+	err = session.Result(Tags{Credential: credential}, &result)
 	return
 }
 
@@ -1279,18 +1279,18 @@ type Tag struct {
 	*Credential
 
 	// 分组 id
-	TagID int `api:"query" req:"tagid"`
+	TagID int `req:"query:tagid"`
 
 	// 排序方式 当目标用户为自己时有效
 	// ("")按照关注顺序排列
 	// ("attention")按照最常访问排列
-	OrderType string `api:"query,omitempty"`
+	OrderType string `req:"query,omitempty"`
 
 	// 分页页数
-	Pn int `api:"query:1"`
+	Pn int `req:"query" default:"1"`
 
 	// 分页大小
-	Ps int `api:"query:20"`
+	Ps int `req:"query" default:"20"`
 }
 
 func (Tag) RawURL() string {
@@ -1301,7 +1301,7 @@ func (api *Tag) ReadPage() (v TagResponse, err error) {
 	if api.Pn == 0 {
 		api.Pn = 1
 	}
-	err = cli.Result(api, &v)
+	err = session.Result(api, &v)
 	if err != nil {
 		return
 	}
@@ -1322,7 +1322,7 @@ type TagResponse struct {
 
 // 查询关注分组明细
 func GetTag(tagid int, credential *Credential) (result TagResponse, err error) {
-	err = cli.Result(Tag{TagID: tagid, Credential: credential}, &result)
+	err = session.Result(Tag{TagID: tagid, Credential: credential}, &result)
 	return
 }
 
@@ -1332,7 +1332,7 @@ type User struct {
 	*Credential
 
 	// 目标用户 UID
-	FID int `api:"query"`
+	FID int `req:"query"`
 }
 
 func (User) RawURL() string {
@@ -1346,7 +1346,7 @@ type UserResponse struct {
 
 // 查询目标用户所在的分组
 func GetUser(uid int, credential *Credential) (result UserResponse, err error) {
-	err = cli.Result(User{FID: uid, Credential: credential}, &result)
+	err = session.Result(User{FID: uid, Credential: credential}, &result)
 	return
 }
 
@@ -1367,7 +1367,7 @@ type SpecialResponse struct {
 
 // 查询所有特别关注 UID
 func GetSpecial(credential *Credential) (result SpecialResponse, err error) {
-	err = cli.Result(Special{Credential: credential}, &result)
+	err = session.Result(Special{Credential: credential}, &result)
 	return
 }
 
@@ -1377,7 +1377,7 @@ type Create struct {
 	*Credential
 
 	// 分组名 最长 16 字符
-	Tag string `api:"body"`
+	Tag string `req:"body"`
 }
 
 func (Create) RawURL() string {
@@ -1393,7 +1393,7 @@ type CreateResponse struct {
 
 // 创建分组
 func PostCreate(tag string, credential *Credential) (result CreateResponse, err error) {
-	err = cli.Result(Create{Tag: tag, Credential: credential}, &result)
+	err = session.Result(Create{Tag: tag, Credential: credential}, &result)
 	return
 }
 
@@ -1403,10 +1403,10 @@ type Update struct {
 	*Credential
 
 	// 分组 id
-	TagID int `api:"body" req:"tagid"`
+	TagID int `req:"body:tagid"`
 
 	// 新分组名 最长 16 字符
-	Name string `api:"body"`
+	Name string `req:"body"`
 }
 
 func (Update) RawURL() string {
@@ -1419,7 +1419,7 @@ type UpdateResponse struct {
 
 // 重命名分组
 func PostUpdate(tag int, name string, credential *Credential) (result UpdateResponse, err error) {
-	err = cli.Result(Update{TagID: tag, Name: name, Credential: credential}, &result)
+	err = session.Result(Update{TagID: tag, Name: name, Credential: credential}, &result)
 	return
 }
 
@@ -1429,7 +1429,7 @@ type Del struct {
 	*Credential
 
 	// 分组 id
-	TagID int `api:"body" req:"tagid"`
+	TagID int `req:"body:tagid"`
 }
 
 func (Del) RawURL() string {
@@ -1442,7 +1442,7 @@ type DelResponse struct {
 
 // 删除分组
 func PostDel(tagid int, credential *Credential) (result DelResponse, err error) {
-	err = cli.Result(Del{TagID: tagid, Credential: credential}, &result)
+	err = session.Result(Del{TagID: tagid, Credential: credential}, &result)
 	return
 }
 
@@ -1454,10 +1454,10 @@ type AddUsers struct {
 	*Credential
 
 	// 目标用户 UID 用(,)间隔
-	FIDs string `api:"query"`
+	FIDs string `req:"query"`
 
 	// 分组 id 列表 用(,)间隔
-	TagIDs string `api:"query" req:"tagids"`
+	TagIDs string `req:"query:tagids"`
 }
 
 func (AddUsers) RawURL() string {
@@ -1481,7 +1481,7 @@ func IntSliceToString(num []int) string {
 //
 // 如需删除分组中的成员 请将 tagids 设为 0 即移动至默认分组 而不是取关
 func PostAddUsers(uid, tagid []int, credential *Credential) (result AddUsersResponse, err error) {
-	err = cli.Result(AddUsers{FIDs: IntSliceToString(uid), TagIDs: IntSliceToString(tagid), Credential: credential}, &result)
+	err = session.Result(AddUsers{FIDs: IntSliceToString(uid), TagIDs: IntSliceToString(tagid), Credential: credential}, &result)
 	return
 }
 
@@ -1491,10 +1491,10 @@ type CopyUsers struct {
 	*Credential
 
 	// 待复制用户 UID 用(,)间隔
-	FIDs string `api:"query"`
+	FIDs string `req:"query"`
 
 	// 目标分组 id 列表 用(,)间隔
-	TagIDs string `api:"query" req:"tagids"`
+	TagIDs string `req:"query:tagids"`
 }
 
 func (CopyUsers) RawURL() string {
@@ -1507,7 +1507,7 @@ type CopyUsersResponse struct {
 
 // 复制关注到分组
 func PostCopyUsers(uid, tagid []int, credential *Credential) (result CopyUsersResponse, err error) {
-	err = cli.Result(CopyUsers{FIDs: IntSliceToString(uid), TagIDs: IntSliceToString(tagid), Credential: credential}, &result)
+	err = session.Result(CopyUsers{FIDs: IntSliceToString(uid), TagIDs: IntSliceToString(tagid), Credential: credential}, &result)
 	return
 }
 
@@ -1517,13 +1517,13 @@ type MoveUsers struct {
 	*Credential
 
 	// 原分组 id 列表 用(,)间隔
-	BeforeTagIDs string `api:"body" req:"beforeTagids"`
+	BeforeTagIDs string `req:"body:beforeTagids"`
 
 	// 新分组 id 列表 用(,)间隔
-	AfterTagIDs string `api:"body" req:"afterTagids"`
+	AfterTagIDs string `req:"body:afterTagids"`
 
 	// 待移动用户 UID 用(,)间隔
-	FIDs string `api:"query"`
+	FIDs string `req:"query"`
 }
 
 func (MoveUsers) RawURL() string {
@@ -1536,7 +1536,7 @@ type MoveUsersResponse struct {
 
 // 移动关注到分组
 func PostMoveUsers(uid, beforeTagid, afterTagid []int, credential *Credential) (result MoveUsersResponse, err error) {
-	err = cli.Result(MoveUsers{
+	err = session.Result(MoveUsers{
 		BeforeTagIDs: IntSliceToString(beforeTagid),
 		AfterTagIDs:  IntSliceToString(afterTagid),
 		FIDs:         IntSliceToString(uid),
@@ -1553,7 +1553,7 @@ type MedalWall struct {
 	*Credential
 
 	// 目标 UID
-	TargetID int `api:"query"`
+	TargetID int `req:"query"`
 }
 
 func (MedalWall) RawURL() string {
@@ -1621,7 +1621,7 @@ type MedalWallResponse struct {
 
 // 指定用户的所有粉丝勋章信息
 func GetMedalWall(uid int, credential *Credential) (result MedalWallResponse, err error) {
-	err = cli.Result(MedalWall{TargetID: uid, Credential: credential}, &result)
+	err = session.Result(MedalWall{TargetID: uid, Credential: credential}, &result)
 	return
 }
 
@@ -1719,7 +1719,7 @@ type Arc struct {
 	req.Get
 
 	// 目标用户 UID
-	Vmid int `api:"query"`
+	Vmid int `req:"query"`
 }
 
 func (Arc) RawURL() string {
@@ -1733,7 +1733,7 @@ type ArcResponse struct {
 
 // 查询用户置顶视频
 func GetArc(uid int) (result ArcResponse, err error) {
-	err = cli.Result(Arc{Vmid: uid}, &result)
+	err = session.Result(Arc{Vmid: uid}, &result)
 	return
 }
 
@@ -1744,14 +1744,14 @@ type Set struct {
 
 	// 置顶目标稿件 avid
 	// 与 bvid 任选一个
-	AID int `api:"body"`
+	AID int `req:"body"`
 
 	// 置顶目标稿件 bvid
 	// 与 avid 任选一个
-	BVID string `api:"body" req:"bvid"`
+	BVID string `req:"body:bvid"`
 
 	// 置顶视频备注 最大 40 字符
-	Reason string `api:"body"`
+	Reason string `req:"body"`
 }
 
 func (Set) RawURL() string {
@@ -1764,7 +1764,7 @@ type SetResponse struct {
 
 // 设置置顶视频
 func PostSet(bvid, reason string, credential *Credential) (result SetResponse, err error) {
-	err = cli.Result(Set{BVID: bvid, Reason: reason, Credential: credential}, &result)
+	err = session.Result(Set{BVID: bvid, Reason: reason, Credential: credential}, &result)
 	return
 }
 
@@ -1784,7 +1784,7 @@ type CancelResponse struct {
 
 // 取消置顶视频
 func PostCancel(credential *Credential) (result CancelResponse, err error) {
-	err = cli.Result(Cancel{Credential: credential}, &result)
+	err = session.Result(Cancel{Credential: credential}, &result)
 	return
 }
 
@@ -1793,7 +1793,7 @@ type Masterpiece struct {
 	req.Get
 
 	// 目标用户 UID
-	Vmid int `api:"query"`
+	Vmid int `req:"query"`
 }
 
 func (Masterpiece) RawURL() string {
@@ -1807,7 +1807,7 @@ type MasterpieceResponse struct {
 
 // 查询用户代表作视频列表
 func GetMasterpiece(uid int) (result MasterpieceResponse, err error) {
-	err = cli.Result(Masterpiece{Vmid: uid}, &result)
+	err = session.Result(Masterpiece{Vmid: uid}, &result)
 	return
 }
 
@@ -1818,14 +1818,14 @@ type Add struct {
 
 	// 置顶目标稿件 avid
 	// 与 bvid 任选一个
-	AID int `api:"body"`
+	AID int `req:"body"`
 
 	// 置顶目标稿件 bvid
 	// 与 avid 任选一个
-	BVID string `api:"body" req:"bvid"`
+	BVID string `req:"body:bvid"`
 
 	// 置顶视频备注 最大 40 字符
-	Reason string `api:"body"`
+	Reason string `req:"body"`
 }
 
 func (Add) RawURL() string {
@@ -1838,7 +1838,7 @@ type AddResponse struct {
 
 // 添加代表作视频
 func PostAdd(bvid, reason string, credential *Credential) (result AddResponse, err error) {
-	err = cli.Result(Add{BVID: bvid, Reason: reason, Credential: credential}, &result)
+	err = session.Result(Add{BVID: bvid, Reason: reason, Credential: credential}, &result)
 	return
 }
 
@@ -1849,11 +1849,11 @@ type MasterpieceCancel struct {
 
 	// 取消置顶稿件 avid
 	// 与 bvid 任选一个
-	AID int `api:"body"`
+	AID int `req:"body"`
 
 	// 取消置顶稿件 bvid
 	// 与 avid 任选一个
-	BVID string `api:"body" req:"bvid"`
+	BVID string `req:"body:bvid"`
 }
 
 func (MasterpieceCancel) RawURL() string {
@@ -1866,7 +1866,7 @@ type MasterpieceCancelResponse struct {
 
 // 删除代表作视频
 func PostMasterpieceCancel(bvid string, credential *Credential) (result MasterpieceCancelResponse, err error) {
-	err = cli.Result(MasterpieceCancel{BVID: bvid, Credential: credential}, &result)
+	err = session.Result(MasterpieceCancel{BVID: bvid, Credential: credential}, &result)
 	return
 }
 
@@ -1875,7 +1875,7 @@ type AccTags struct {
 	req.Get
 
 	// 用户 UID
-	MID int `api:"query"`
+	MID int `req:"query"`
 }
 
 func (AccTags) RawURL() string {
@@ -1892,7 +1892,7 @@ type AccTagsResponse struct {
 
 // 查看用户个人 TAG
 func GetAccTags(uid int) (result AccTagsResponse, err error) {
-	err = cli.Result(AccTags{MID: uid}, &result)
+	err = session.Result(AccTags{MID: uid}, &result)
 	return
 }
 
@@ -1902,7 +1902,7 @@ type TagsSet struct {
 	*Credential
 
 	// 要设置的 TAG 内容 用(,)间隔
-	Tags string `api:"body"`
+	Tags string `req:"body"`
 }
 
 func (TagsSet) RawURL() string {
@@ -1915,7 +1915,7 @@ type TagsSetResponse struct {
 
 // 修改个人 TAG
 func PostTagsSet(tags []string, credential *Credential) (result TagsSetResponse, err error) {
-	err = cli.Result(TagsSet{Tags: strings.Join(tags, ","), Credential: credential}, &result)
+	err = session.Result(TagsSet{Tags: strings.Join(tags, ","), Credential: credential}, &result)
 	return
 }
 
@@ -1924,7 +1924,7 @@ type Notice struct {
 	req.Get
 
 	// 用户 UID
-	MID int `api:"query"`
+	MID int `req:"query"`
 }
 
 func (Notice) RawURL() string {
@@ -1938,7 +1938,7 @@ type NoticeResponse struct {
 
 // 查看用户空间公告
 func GetNotice(uid int) (result NoticeResponse, err error) {
-	err = cli.Result(Notice{MID: uid}, &result)
+	err = session.Result(Notice{MID: uid}, &result)
 	return
 }
 
@@ -1948,7 +1948,7 @@ type NoticeSet struct {
 	*Credential
 
 	// 要设置的公告内容
-	Notice string `api:"body"`
+	Notice string `req:"body"`
 }
 
 func (NoticeSet) RawURL() string {
@@ -1961,7 +1961,7 @@ type NoticeSetResponse struct {
 
 // 修改空间公告
 func PostNoticeSet(notice string, credential *Credential) (result NoticeSetResponse, err error) {
-	err = cli.Result(NoticeSet{Notice: notice, Credential: credential}, &result)
+	err = session.Result(NoticeSet{Notice: notice, Credential: credential}, &result)
 	return
 }
 
@@ -1970,7 +1970,7 @@ type Settings struct {
 	req.Get
 
 	// 用户 UID
-	MID int `api:"query"`
+	MID int `req:"query"`
 }
 
 func (Settings) RawURL() string {
@@ -2026,7 +2026,7 @@ type SettingsResponse struct {
 
 // 查询空间设置
 func GetSettings(uid int) (result SettingsResponse, err error) {
-	err = cli.Result(Settings{MID: uid}, &result)
+	err = session.Result(Settings{MID: uid}, &result)
 	return
 }
 
@@ -2035,7 +2035,7 @@ type TopPhotoList struct {
 	req.Get
 
 	// 用户 UID
-	MID int `api:"query"`
+	MID int `req:"query"`
 }
 
 func (TopPhotoList) RawURL() string {
@@ -2062,7 +2062,7 @@ type TopPhotoListResponse struct {
 
 // 查询可用头图列表 (Web端)
 func GetTopPhotoList(uid int) (result TopPhotoListResponse, err error) {
-	err = cli.Result(TopPhotoList{MID: uid}, &result)
+	err = session.Result(TopPhotoList{MID: uid}, &result)
 	return
 }
 
@@ -2072,7 +2072,7 @@ type SetToutu struct {
 	*Credential
 
 	// 头图 ID
-	ID int `api:"body"`
+	ID int `req:"body"`
 }
 
 func (SetToutu) RawURL() string {
@@ -2086,7 +2086,7 @@ type SetToutuResponse struct {
 
 // 设置空间头图 (Web端)
 func PostSetToutu(id int, credential *Credential) (result SetToutuResponse, err error) {
-	err = cli.Result(SetToutu{ID: id, Credential: credential}, &result)
+	err = session.Result(SetToutu{ID: id, Credential: credential}, &result)
 	return
 }
 
@@ -2096,7 +2096,7 @@ type LastPlayGame struct {
 	*Credential
 
 	// 目标用户 UID
-	MID int `api:"query"`
+	MID int `req:"query"`
 }
 
 func (LastPlayGame) RawURL() string {
@@ -2125,7 +2125,7 @@ type LastPlayGameResponse struct {
 
 // 查询用户最近玩过的游戏
 func GetLastPlayGame(uid int, credential *Credential) (result LastPlayGameResponse, err error) {
-	err = cli.Result(LastPlayGame{MID: uid, Credential: credential}, &result)
+	err = session.Result(LastPlayGame{MID: uid, Credential: credential}, &result)
 	return
 }
 
@@ -2135,7 +2135,7 @@ type CoinVideo struct {
 	*Credential
 
 	// 目标用户 UID
-	Vmid int `api:"query"`
+	Vmid int `req:"query"`
 }
 
 func (CoinVideo) RawURL() string {
@@ -2149,7 +2149,7 @@ type CoinVideoResponse struct {
 
 // 查询用户最近投币视频（Web）
 func GetCoinVideo(uid int, credential *Credential) (result CoinVideoResponse, err error) {
-	err = cli.Result(CoinVideo{Vmid: uid, Credential: credential}, &result)
+	err = session.Result(CoinVideo{Vmid: uid, Credential: credential}, &result)
 	return
 }
 
@@ -2159,7 +2159,7 @@ type LikeVideo struct {
 	*Credential
 
 	// 目标用户 UID
-	Vmid int `api:"query"`
+	Vmid int `req:"query"`
 }
 
 func (LikeVideo) RawURL() string {
@@ -2175,7 +2175,7 @@ type LikeVideoResponse struct {
 
 // 查询用户最近点赞视频（Web）
 func GetLikeVideo(uid int, credential *Credential) (result LikeVideoResponse, err error) {
-	err = cli.Result(LikeVideo{Vmid: uid, Credential: credential}, &result)
+	err = session.Result(LikeVideo{Vmid: uid, Credential: credential}, &result)
 	return
 }
 
@@ -2185,30 +2185,30 @@ type ArcSearch struct {
 	*Credential
 
 	// 目标用户 UID
-	MID int `api:"query"`
+	MID int `req:"query"`
 
 	// 排序方式
 	// 默认为 pubdate
 	// 最新发布 pubdate
 	// 最多播放 click
 	// 最多收藏 stow
-	Order string `api:"query"`
+	Order string `req:"query"`
 
 	// 筛选目标分区
 	// 默认为 0 不进行分区筛选
-	TID int `api:"query"`
+	TID int `req:"query"`
 
 	// 关键词筛选
 	// 用于使用关键词搜索该UP主视频稿件
-	Keyword string `api:"query"`
+	Keyword string `req:"query"`
 
 	// 页码
 	// 默认为 1
-	Pn int `api:"query:1"`
+	Pn int `req:"query" default:"1"`
 
 	// 每页项数
 	// 默认为 30
-	Ps int `api:"query:30"`
+	Ps int `req:"query" default:"30"`
 }
 
 func (ArcSearch) RawURL() string {
@@ -2219,7 +2219,7 @@ func (api *ArcSearch) ReadPage() (v ArcSearchResponse, err error) {
 	if api.Pn == 0 {
 		api.Pn = 1
 	}
-	err = cli.Result(api, &v)
+	err = session.Result(api, &v)
 	if err != nil {
 		return
 	}
@@ -2305,7 +2305,7 @@ type ArcSearchResponse struct {
 
 // 查询用户投稿视频明细
 func GetArcSearch(uid int, credential *Credential) (result ArcSearchResponse, err error) {
-	err = cli.Result(ArcSearch{MID: uid, Credential: credential}, &result)
+	err = session.Result(ArcSearch{MID: uid, Credential: credential}, &result)
 	return
 }
 
@@ -2315,22 +2315,22 @@ type Article struct {
 	*Credential
 
 	// 目标用户 UID
-	MID int `api:"query"`
+	MID int `req:"query"`
 
 	// 页码
 	// 默认为 1
-	Pn int `api:"query:1"`
+	Pn int `req:"query" default:"1"`
 
 	// 每页项数
 	// 默认为 30
-	Ps int `api:"query:30"`
+	Ps int `req:"query" default:"30"`
 
 	// 排序方式
 	// 默认为 publish_time
 	// 最新发布 publish_time
 	// 最多阅读 view
 	// 最多收藏 fav
-	Sort string `api:"query"`
+	Sort string `req:"query"`
 }
 
 func (Article) RawURL() string {
@@ -2341,7 +2341,7 @@ func (api *Article) ReadPage() (v ArticleResponse, err error) {
 	if api.Pn == 0 {
 		api.Pn = 1
 	}
-	err = cli.Result(api, &v)
+	err = session.Result(api, &v)
 	if err != nil {
 		return
 	}
@@ -2462,7 +2462,7 @@ type ArticleResponse struct {
 
 // 查询用户投稿专栏明细
 func GetArticle(uid int, credential *Credential) (result ArticleResponse, err error) {
-	err = cli.Result(Article{MID: uid, Credential: credential}, &result)
+	err = session.Result(Article{MID: uid, Credential: credential}, &result)
 	return
 }
 
@@ -2472,13 +2472,13 @@ type ArticleLists struct {
 	*Credential
 
 	// 目标用户 UID
-	MID int `api:"query"`
+	MID int `req:"query"`
 
 	// 排序方式
 	// 默认为 0
 	// 最近更新 0
 	// 最多阅读 1
-	Sort int `api:"query"`
+	Sort int `req:"query"`
 }
 
 func (ArticleLists) RawURL() string {
@@ -2511,7 +2511,7 @@ type ArticleListsResponse struct {
 
 // 查询用户专栏文集明细
 func GetArticleLists(uid int, credential *Credential) (result ArticleListsResponse, err error) {
-	err = cli.Result(ArticleLists{MID: uid, Credential: credential}, &result)
+	err = session.Result(ArticleLists{MID: uid, Credential: credential}, &result)
 	return
 }
 
@@ -2520,21 +2520,21 @@ type SongUpper struct {
 	req.Get
 
 	// 目标用户 UID
-	UID int `api:"query"`
+	UID int `req:"query"`
 
 	// 页码
 	// 默认为 1
-	Pn int `api:"query:1"`
+	Pn int `req:"query" default:"1"`
 
 	// 每页项数
 	// 默认为 30
-	Ps int `api:"query:30"`
+	Ps int `req:"query" default:"30"`
 
 	// 排序方式
 	// 最新发布 1
 	// 最多播放 2
 	// 最多收藏 3
-	Order string `api:"query"`
+	Order string `req:"query"`
 }
 
 func (SongUpper) RawURL() string {
@@ -2545,7 +2545,7 @@ func (api *SongUpper) ReadPage() (v SongUpperResponse, err error) {
 	if api.Pn == 0 {
 		api.Pn = 1
 	}
-	err = cli.Result(api, &v)
+	err = session.Result(api, &v)
 	if err != nil {
 		return
 	}
@@ -2606,7 +2606,7 @@ type SongUpperResponse struct {
 
 // 查询用户投稿音频明细
 func GetSongUpper(uid int) (result SongUpperResponse, err error) {
-	err = cli.Result(SongUpper{UID: uid}, &result)
+	err = session.Result(SongUpper{UID: uid}, &result)
 	return
 }
 

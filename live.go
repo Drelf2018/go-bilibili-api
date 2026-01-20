@@ -1,4 +1,4 @@
-package api
+package bilibili
 
 import "github.com/Drelf2018/req"
 
@@ -9,7 +9,7 @@ type RoomInfo struct {
 	req.Get
 
 	// 直播间号	可以为短号
-	RoomID int `api:"query"`
+	RoomID int `req:"query"`
 }
 
 func (RoomInfo) RawURL() string {
@@ -95,7 +95,7 @@ type RoomInfoResponse struct {
 
 // 获取直播间信息
 func GetRoomInfo(roomid int) (result RoomInfoResponse, err error) {
-	err = cli.Result(RoomInfo{RoomID: roomid}, &result)
+	err = session.Result(RoomInfo{RoomID: roomid}, &result)
 	return
 }
 
@@ -107,7 +107,7 @@ type DanmuInfo struct {
 	*Credential
 
 	// 直播间真实 ID
-	ID int `api:"query"`
+	ID int `req:"query"`
 }
 
 func (DanmuInfo) RawURL() string {
@@ -136,6 +136,6 @@ type DanmuInfoResponse struct {
 //
 // 参数 roomid 为直播间真实 ID
 func GetDanmuInfo(roomid int, credential *Credential) (result DanmuInfoResponse, err error) {
-	err = cli.Result(DanmuInfo{ID: roomid, Credential: credential}, &result)
+	err = session.Result(DanmuInfo{ID: roomid, Credential: credential}, &result)
 	return
 }

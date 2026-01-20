@@ -1,4 +1,4 @@
-package api
+package bilibili
 
 import (
 	"encoding/json"
@@ -41,7 +41,7 @@ type UnreadResponse struct {
 
 // 未读消息数
 func GetUnread(credential *Credential) (result UnreadResponse, err error) {
-	err = cli.Result(Unread{Credential: credential}, &result)
+	err = session.Result(Unread{Credential: credential}, &result)
 	return
 }
 
@@ -52,9 +52,9 @@ type SingleUnread struct {
 	req.Get
 	*Credential
 
-	Build      int    `api:"query,omitempty"`
-	MobiApp    string `api:"query,omitempty"`
-	UnreadType int    `api:"query,omitempty"`
+	Build      int    `req:"query,omitempty"`
+	MobiApp    string `req:"query,omitempty"`
+	UnreadType int    `req:"query,omitempty"`
 }
 
 func (SingleUnread) RawURL() string {
@@ -78,7 +78,7 @@ type SingleUnreadResponse struct {
 
 // 未读私信数
 func GetSingleUnread(credential *Credential) (result SingleUnreadResponse, err error) {
-	err = cli.Result(SingleUnread{Credential: credential}, &result)
+	err = session.Result(SingleUnread{Credential: credential}, &result)
 	return
 }
 
@@ -92,37 +92,37 @@ type SendMsg struct {
 	*Credential
 
 	// 发送者 UID
-	WSenderUID int `api:"query"`
+	WSenderUID int `req:"query"`
 
 	// 接收者 UID
-	WReceiverID int `api:"query"`
+	WReceiverID int `req:"query"`
 
 	// 发送者 UID
-	SenderUID int `api:"body" req:"msg[sender_uid]"`
+	SenderUID int `req:"body:msg[sender_uid]"`
 
 	// 接收者 UID
-	ReceiverID int `api:"body" req:"msg[receiver_id]"`
+	ReceiverID int `req:"body:msg[receiver_id]"`
 
 	// 固定为 1
-	ReceiverType int `api:"body:1" req:"msg[receiver_type]"`
+	ReceiverType int `req:"body" default:"1:msg[receiver_type]"`
 
 	// 消息类型 详见 content.go
-	MsgType int `api:"body" req:"msg[msg_type]"`
+	MsgType int `req:"body:msg[msg_type]"`
 
 	// 设备信息
-	DeviceID string `api:"body:88A68CB6-CEFC-49BE-87DE-D2A22E549C1E" req:"msg[dev_id]"`
+	DeviceID string `req:"body" default:"88A68CB6-CEFC-49BE-87DE-D2A22E549C1E:msg[dev_id]"`
 
 	// 秒级时间戳
-	Timestamp int `api:"body" req:"msg[timestamp]"`
+	Timestamp int `req:"body:msg[timestamp]"`
 
 	// 消息内容
-	Content Content `api:"body" req:"msg[content]"`
+	Content Content `req:"body:msg[content]"`
 
 	// 未知 非必要
-	MsgStatus int `api:"body:0" req:"msg[msg_status]"`
+	MsgStatus int `req:"body" default:"0:msg[msg_status]"`
 
 	// 表情包版本 非必要
-	NewFaceVersion int `api:"body:0" req:"msg[new_face_version]"`
+	NewFaceVersion int `req:"body" default:"0:msg[new_face_version]"`
 }
 
 func (SendMsg) RawURL() string {
@@ -150,7 +150,7 @@ func PostSendMsg(receiver int, content Content, credential *Credential) (result 
 	if err != nil {
 		return
 	}
-	err = cli.Result(SendMsg{
+	err = session.Result(SendMsg{
 		WSenderUID:  myUID,
 		WReceiverID: receiver,
 		SenderUID:   myUID,
@@ -169,25 +169,25 @@ type FetchSessionMsgs struct {
 	*Credential
 
 	// 聊天对象的 ID
-	TalkerID int `api:"query"`
+	TalkerID int `req:"query"`
 
 	// 聊天对象的类型 (1)用户 (2)粉丝团
-	SessionType int `api:"query"`
+	SessionType int `req:"query"`
 
 	// 列出消息条数
 	// 最大 2000
-	Size int `api:"query"`
+	Size int `req:"query"`
 
 	// 发送者设备
-	SenderDeviceID int `api:"query:1"`
+	SenderDeviceID int `req:"query" default:"1"`
 
 	// 开始的序列号（开区间）
 	// 默认 0 为全部
-	BeginSeqno json.Number `api:"query,omitempty"`
+	BeginSeqno json.Number `req:"query,omitempty"`
 
 	// 结束的序列号（开区间）
 	// 默认 0 为全部
-	EndSeqno json.Number `api:"query,omitempty"`
+	EndSeqno json.Number `req:"query,omitempty"`
 }
 
 func (FetchSessionMsgs) RawURL() string {
@@ -195,7 +195,7 @@ func (FetchSessionMsgs) RawURL() string {
 }
 
 func (api *FetchSessionMsgs) ReadPage() (v FetchSessionMsgsResponse, err error) {
-	err = cli.Result(api, &v)
+	err = session.Result(api, &v)
 	if err != nil {
 		return
 	}
@@ -256,7 +256,7 @@ type FetchSessionMsgsResponse struct {
 //
 // endSeqno: 消息结束的序列号（开区间） 默认 0 为全部
 func GetFetchSessionMsgs(talkerID, sessionType, size int, beginSeqno, endSeqno string, credential *Credential) (result FetchSessionMsgsResponse, err error) {
-	err = cli.Result(FetchSessionMsgs{
+	err = session.Result(FetchSessionMsgs{
 		TalkerID:    talkerID,
 		SessionType: sessionType,
 		Size:        size,

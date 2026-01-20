@@ -1,4 +1,4 @@
-package api
+package bilibili
 
 import "github.com/Drelf2018/req"
 
@@ -32,30 +32,30 @@ type SeriesArchives struct {
 	req.Get
 
 	// 用户 mid
-	MID int `api:"query"`
+	MID int `req:"query"`
 
 	// 系列 ID
-	SeriesID int `api:"query"`
+	SeriesID int `req:"query"`
 
 	// 作用尚不明确
 	// 默认为 true
-	OnlyNormal bool `api:"query"`
+	OnlyNormal bool `req:"query"`
 
 	// 排序方式
 	// 默认排序 desc
 	// 升序排序 asc
-	Sort string `api:"query"`
+	Sort string `req:"query"`
 
 	// 页码
 	// 默认为 1
-	Pn int `api:"query:1"`
+	Pn int `req:"query" default:"1"`
 
 	// 每页项数
 	// 默认为 30
-	Ps int `api:"query:30"`
+	Ps int `req:"query" default:"30"`
 
 	// 当前用户 UID
-	CurrentMID int `api:"query"`
+	CurrentMID int `req:"query"`
 }
 
 func (SeriesArchives) RawURL() string {
@@ -66,7 +66,7 @@ func (api *SeriesArchives) ReadPage() (v SeriesArchivesResponse, err error) {
 	if api.Pn == 0 {
 		api.Pn = 1
 	}
-	err = cli.Result(api, &v)
+	err = session.Result(api, &v)
 	if err != nil {
 		return
 	}
@@ -95,6 +95,6 @@ type SeriesArchivesResponse struct {
 
 // 获取指定系列视频
 func GetSeriesArchives(uid int, seriesID int) (result SeriesArchivesResponse, err error) {
-	err = cli.Result(SeriesArchives{MID: uid, SeriesID: seriesID}, &result)
+	err = session.Result(SeriesArchives{MID: uid, SeriesID: seriesID}, &result)
 	return
 }

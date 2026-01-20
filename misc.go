@@ -1,4 +1,4 @@
-package api
+package bilibili
 
 import "github.com/Drelf2018/req"
 
@@ -22,7 +22,7 @@ type NowResponse struct {
 
 // 获取当前时间戳
 func GetNow() (result NowResponse, err error) {
-	err = cli.Result(Now{}, &result)
+	err = session.Result(Now{}, &result)
 	return
 }
 
@@ -45,7 +45,7 @@ type TimestampResponse struct {
 
 // 获取适用于 RTC 的时间戳
 func GetTimestamp() (result TimestampResponse, err error) {
-	err = cli.Result(Timestamp{}, &result)
+	err = session.Result(Timestamp{}, &result)
 	return
 }
 
@@ -70,7 +70,7 @@ type SPIResponse struct {
 
 // 接口获取 buvid3 / buvid4
 func GetSPI() (result SPIResponse, err error) {
-	err = cli.Result(SPI{}, &result)
+	err = session.Result(SPI{}, &result)
 	return
 }
 

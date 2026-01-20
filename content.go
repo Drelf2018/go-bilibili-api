@@ -1,9 +1,9 @@
-package api
+package bilibili
 
 import (
 	"encoding/json"
 
-	"github.com/Drelf2018/req"
+	"github.com/Drelf2018/req/method"
 )
 
 const (
@@ -35,7 +35,6 @@ const (
 
 // 内容接口
 type Content interface {
-	req.Marshaler
 	MsgType() int
 }
 
@@ -44,15 +43,14 @@ type TextContent string
 
 func (TextContent) MsgType() int { return MsgTypeText }
 
-func (c TextContent) MarshalString() (string, error) {
-	b, err := json.Marshal(map[string]TextContent{"content": c})
-	if err != nil {
-		return "", err
-	}
-	return string(b), nil
+var _ Content = TextContent("")
+
+func (c TextContent) MarshalString() string {
+	b, _ := json.Marshal(map[string]TextContent{"content": c})
+	return string(b)
 }
 
-var _ Content = TextContent("")
+var _ method.Marshaler = TextContent("")
 
 // 图片内容
 type ImageContent struct {
@@ -66,23 +64,11 @@ type ImageContent struct {
 
 func (ImageContent) MsgType() int { return MsgTypeImage }
 
-func (c ImageContent) MarshalString() (string, error) {
-	b, err := json.Marshal(c)
-	if err != nil {
-		return "", err
-	}
-	return string(b), nil
-}
-
-var _ Content = (*ImageContent)(nil)
+var _ Content = ImageContent{}
 
 // 撤回消息内容
 type WithdrawContent string
 
 func (WithdrawContent) MsgType() int { return MsgTypeWithdraw }
-
-func (c WithdrawContent) MarshalString() (string, error) {
-	return string(c), nil
-}
 
 var _ Content = WithdrawContent("")

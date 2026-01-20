@@ -1,10 +1,10 @@
-package api
+package bilibili
 
 import (
 	"bytes"
 	"crypto/md5"
 	"encoding/hex"
-	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/Drelf2018/req"
+	"github.com/Drelf2018/req/method"
 )
 
 var mixinKey string
@@ -84,7 +85,6 @@ var unwantedChars = strings.NewReplacer(
 
 // 添加请求参数验证参数
 func AddMixinKey(query url.Values) error {
-	// remove unwanted characters
 	for k, v := range query {
 		if len(v) >= 1 {
 			query.Set(k, unwantedChars.Replace(v[0]))
@@ -92,7 +92,6 @@ func AddMixinKey(query url.Values) error {
 			query.Del(k)
 		}
 	}
-	// reset query
 	key, err := GetMixinKey()
 	if err != nil {
 		return err
@@ -107,23 +106,17 @@ func AddMixinKey(query url.Values) error {
 // 对于需要添加 mixin_key 的接口 只需要将 MixinKey 嵌入结构体即可
 type MixinKey struct{}
 
-func (MixinKey) Query(req *http.Request, cli *req.Client, query []req.Field, value reflect.Value, api req.API) (err error) {
-	// calculate mixin_key
+func (MixinKey) Query(r *http.Request, value reflect.Value, query []reflect.StructField) (err error) {
 	_, err = GetMixinKey()
 	if err != nil {
 		return
 	}
-	// create query values
-	values, err := cli.MakeURLValues(query, value)
-	if err != nil {
-		return
-	}
-	// reset query
+	values := method.MakeURLValues(r.Context(), value, query)
 	err = AddMixinKey(values)
 	if err != nil {
 		return
 	}
-	req.URL.RawQuery = values.Encode()
+	r.URL.RawQuery = values.Encode()
 	return
 }
 
@@ -138,47 +131,26 @@ func (GetWBI) Method() string {
 
 var _ req.APIQuery = GetWBI{}
 
-var ErrBiliJctNotExists = errors.New("api: bili_jct does not exist")
-
-type PostCSRF struct{}
+type PostCSRF struct {
+	ContentType string `req:"header" default:"application/x-www-form-urlencoded"`
+}
 
 func (PostCSRF) Method() string {
 	return http.MethodPost
 }
 
-func (PostCSRF) Body(cli *req.Client, body []req.Field, value reflect.Value, api req.API) (_ io.Reader, err error) {
-	// check cookie
-	jar, ok := api.(http.CookieJar)
-	if !ok || jar == nil {
-		err = ErrBiliJctNotExists
-		return
-	}
-	// get bili_jct
-	var biliJct string
-	for _, cookie := range jar.Cookies(nil) {
-		if cookie.Name == "bili_jct" {
-			biliJct = cookie.Value
-			break
-		}
-	}
-	if biliJct == "" {
-		err = ErrBiliJctNotExists
-		return
-	}
-	// create form body
-	form, err := cli.MakeURLValues(body, value)
+func (PostCSRF) Body(r *http.Request, value reflect.Value, body []reflect.StructField) (_ io.Reader, err error) {
+	biliJct, err := r.Cookie("bili_jct")
 	if err != nil {
-		return
+		return nil, fmt.Errorf("%w: \"bili_jct\"", err)
 	}
-	form.Set("csrf", biliJct)
+	if biliJct.Value == "" {
+		return nil, fmt.Errorf("bilibili: empty cookie[%q]", "bili_jct")
+	}
+	form := method.MakeURLValues(r.Context(), value, body)
+	form.Set("csrf", biliJct.Value)
+	form.Set("csrf_token", biliJct.Value)
 	return strings.NewReader(form.Encode()), nil
 }
 
-func (PostCSRF) Header(req *http.Request, cli *req.Client, header []req.Field, value reflect.Value, api req.API) (err error) {
-	err = cli.AddHeader(req, header, value)
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	return
-}
-
 var _ req.APIBody = PostCSRF{}
-var _ req.APIHeader = PostCSRF{}

@@ -1,4 +1,4 @@
-package api
+package bilibili
 
 import (
 	"fmt"
@@ -17,7 +17,7 @@ func (e Error) Error() string {
 	if e.Code == 0 {
 		return ""
 	}
-	return fmt.Sprintf("api.Error: %s (%d)", e.Message, e.Code)
+	return fmt.Sprintf("bilibili: %s (%d)", e.Message, e.Code)
 }
 
 func (e Error) Unwrap() error {
