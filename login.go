@@ -39,9 +39,8 @@ type GenerateResponse struct {
 }
 
 // 申请二维码
-func GetGenerate() (result GenerateResponse, err error) {
-	err = session.Result(Generate{}, &result)
-	return
+func GetGenerate(ctx context.Context) (GenerateResponse, error) {
+	return Do[GenerateResponse](ctx, Generate{})
 }
 
 // 扫码登录
@@ -49,7 +48,7 @@ func GetGenerate() (result GenerateResponse, err error) {
 // 登录成功后会自动将 Cookie 值写入该结构体的 *Credential 字段中
 type Poll struct {
 	req.Get
-	*Credential
+	http.CookieJar
 
 	// 先前生成的二维码密钥
 	QRCodeKey string `req:"query:qrcode_key"`
@@ -78,19 +77,19 @@ func (r PollResponse) Unwrap() error {
 }
 
 // 登录成功后会自动将 Cookie 值写入 credential 变量中
-func GetPoll(qrcodeKey string, credential *Credential) (result PollResponse, err error) {
-	err = session.Result(Poll{QRCodeKey: qrcodeKey, Credential: credential}, &result)
-	if err == nil {
-		credential.RefreshToken = result.Data.RefreshToken
-	}
-	return
+func GetPoll(ctx context.Context, jar http.CookieJar, qrcodeKey string) (PollResponse, error) {
+	return Do[PollResponse](ctx, Poll{QRCodeKey: qrcodeKey, CookieJar: jar})
 }
 
 // 登录成功后会自动将 Cookie 值写入返回值 *Credential 中
-func GetCredential(qrcodeKey string) (*Credential, error) {
-	cred := new(Credential)
-	_, err := GetPoll(qrcodeKey, cred)
-	return cred, err
+func GetCredential(ctx context.Context, qrcodeKey string) (*Credential, error) {
+	cred := &Credential{}
+	r, err := GetPoll(ctx, cred, qrcodeKey)
+	if err != nil {
+		return nil, err
+	}
+	cred.RefreshToken = RefreshToken(r.Data.RefreshToken)
+	return cred, nil
 }
 
 // https://socialsisteryi.github.io/bilibili-API-collect/docs/login/login_info.html
@@ -221,9 +220,8 @@ type NavResponse struct {
 
 // 未登录返回值结构
 type NavResponseSimple struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
-	Data    struct {
+	Error
+	Data struct {
 		IsLogin bool `json:"isLogin"` // false
 		WbiImg  struct {
 			ImgURL string `json:"img_url"` // https://i0.hdslb.com/bfs/wbi/7cd084941338484aae1ad9425b84077c.png
@@ -232,21 +230,15 @@ type NavResponseSimple struct {
 	} `json:"data"`
 }
 
-// 携带上下文导航栏用户信息
-func GetNavWithContext(ctx context.Context, jar http.CookieJar) (result NavResponseSimple, err error) {
-	err = session.ResultWithContext(ctx, Nav{CookieJar: jar}, &result)
-	return
-}
-
 // 导航栏用户信息
-func GetNav(jar http.CookieJar) (NavResponseSimple, error) {
-	return GetNavWithContext(context.Background(), jar)
+func GetNav(ctx context.Context, jar http.CookieJar) (NavResponseSimple, error) {
+	return Do[NavResponseSimple](ctx, Nav{CookieJar: jar})
 }
 
 // 登录用户状态数
 type NavStat struct {
 	req.Get
-	*Credential
+	http.CookieJar
 }
 
 func (NavStat) RawURL() string {
@@ -263,15 +255,14 @@ type NavStatResponse struct {
 }
 
 // 登录用户状态数
-func GetNavStat(credential *Credential) (result NavStatResponse, err error) {
-	err = session.Result(NavStat{Credential: credential}, &result)
-	return
+func GetNavStat(ctx context.Context, jar http.CookieJar) (NavStatResponse, error) {
+	return Do[NavStatResponse](ctx, NavStat{CookieJar: jar})
 }
 
 // 获取硬币数
 type Coin struct {
 	req.Get
-	*Credential
+	http.CookieJar
 }
 
 func (Coin) RawURL() string {
@@ -287,9 +278,8 @@ type CoinResponse struct {
 }
 
 // 获取硬币数
-func GetCoin(credential *Credential) (result CoinResponse, err error) {
-	err = session.Result(Coin{Credential: credential}, &result)
-	return
+func GetCoin(ctx context.Context, jar http.CookieJar) (CoinResponse, error) {
+	return Do[CoinResponse](ctx, Coin{CookieJar: jar})
 }
 
 // https://socialsisteryi.github.io/bilibili-API-collect/docs/login/member_center.html
@@ -297,7 +287,7 @@ func GetCoin(credential *Credential) (result CoinResponse, err error) {
 // 获取我的信息
 type Account struct {
 	req.Get
-	*Credential
+	http.CookieJar
 }
 
 func (Account) RawURL() string {
@@ -319,15 +309,14 @@ type AccountResponse struct {
 }
 
 // 获取我的信息
-func GetAccount(credential *Credential) (result AccountResponse, err error) {
-	err = session.Result(Account{Credential: credential}, &result)
-	return
+func GetAccount(ctx context.Context, jar http.CookieJar) (AccountResponse, error) {
+	return Do[AccountResponse](ctx, Account{CookieJar: jar})
 }
 
 // 查询每日奖励状态
 type Reward struct {
 	req.Get
-	*Credential
+	http.CookieJar
 }
 
 func (Reward) RawURL() string {
@@ -349,15 +338,14 @@ type RewardResponse struct {
 }
 
 // 查询每日奖励状态
-func GetReward(credential *Credential) (result RewardResponse, err error) {
-	err = session.Result(Reward{Credential: credential}, &result)
-	return
+func GetReward(ctx context.Context, jar http.CookieJar) (RewardResponse, error) {
+	return Do[RewardResponse](ctx, Reward{CookieJar: jar})
 }
 
 // 查询大会员状态
 type WebUserInfo struct {
 	req.Get
-	*Credential
+	http.CookieJar
 }
 
 func (WebUserInfo) RawURL() string {
@@ -402,15 +390,14 @@ type WebUserInfoResponse struct {
 }
 
 // 查询大会员状态
-func GetWebUserInfo(credential *Credential) (result WebUserInfoResponse, err error) {
-	err = session.Result(WebUserInfo{Credential: credential}, &result)
-	return
+func GetWebUserInfo(ctx context.Context, jar http.CookieJar) (WebUserInfoResponse, error) {
+	return Do[WebUserInfoResponse](ctx, WebUserInfo{CookieJar: jar})
 }
 
 // 查询账号安全情况
 type SiteUserInfo struct {
 	req.Get
-	*Credential
+	http.CookieJar
 }
 
 func (SiteUserInfo) RawURL() string {
@@ -448,15 +435,14 @@ type SiteUserInfoResponse struct {
 }
 
 // 查询账号安全情况
-func GetSiteUserInfo(credential *Credential) (result SiteUserInfoResponse, err error) {
-	err = session.Result(SiteUserInfo{Credential: credential}, &result)
-	return
+func GetSiteUserInfo(ctx context.Context, jar http.CookieJar) (SiteUserInfoResponse, error) {
+	return Do[SiteUserInfoResponse](ctx, SiteUserInfo{CookieJar: jar})
 }
 
 // 查询账号实名认证状态
 type RealnameStatus struct {
 	req.Get
-	*Credential
+	http.CookieJar
 }
 
 func (RealnameStatus) RawURL() string {
@@ -471,15 +457,14 @@ type RealnameStatusResponse struct {
 }
 
 // 查询账号实名认证状态
-func GetRealnameStatus(credential *Credential) (result RealnameStatusResponse, err error) {
-	err = session.Result(RealnameStatus{Credential: credential}, &result)
-	return
+func GetRealnameStatus(ctx context.Context, jar http.CookieJar) (RealnameStatusResponse, error) {
+	return Do[RealnameStatusResponse](ctx, RealnameStatus{CookieJar: jar})
 }
 
 // 查询实名认证详细信息
 type ApplyStatus struct {
 	req.Get
-	*Credential
+	http.CookieJar
 }
 
 func (ApplyStatus) RawURL() string {
@@ -498,15 +483,14 @@ type ApplyStatusResponse struct {
 }
 
 // 查询实名认证详细信息
-func GetApplyStatus(credential *Credential) (result ApplyStatusResponse, err error) {
-	err = session.Result(ApplyStatus{Credential: credential}, &result)
-	return
+func GetApplyStatus(ctx context.Context, jar http.CookieJar) (ApplyStatusResponse, error) {
+	return Do[ApplyStatusResponse](ctx, ApplyStatus{CookieJar: jar})
 }
 
 // 查询硬币变化情况
 type CoinLog struct {
 	req.Get
-	*Credential
+	http.CookieJar
 }
 
 func (CoinLog) RawURL() string {
@@ -526,15 +510,14 @@ type CoinLogResponse struct {
 }
 
 // 查询硬币变化情况
-func GetCoinLog(credential *Credential) (result CoinLogResponse, err error) {
-	err = session.Result(CoinLog{Credential: credential}, &result)
-	return
+func GetCoinLog(ctx context.Context, jar http.CookieJar) (CoinLogResponse, error) {
+	return Do[CoinLogResponse](ctx, CoinLog{CookieJar: jar})
 }
 
 // 修改个人签名
 type SignUpdate struct {
 	PostCSRF
-	*Credential
+	http.CookieJar
 
 	// 要设置的签名内容 可为空
 	UserSign string `req:"body"`
@@ -549,15 +532,14 @@ type SignUpdateResponse struct {
 }
 
 // 修改个人签名
-func PostSignUpdate(sign string, credential *Credential) (result SignUpdateResponse, err error) {
-	err = session.Result(SignUpdate{UserSign: sign, Credential: credential}, &result)
-	return
+func PostSignUpdate(ctx context.Context, jar http.CookieJar, sign string) (SignUpdateResponse, error) {
+	return Do[SignUpdateResponse](ctx, SignUpdate{UserSign: sign, CookieJar: jar})
 }
 
 // 最近一周的经验记录
 type EXPLog struct {
 	req.Get
-	*Credential
+	http.CookieJar
 
 	JSONP       string `req:"query" default:"jsonp"`
 	WebLocation string `req:"query" default:"333.33"`
@@ -580,15 +562,14 @@ type EXPLogResponse struct {
 }
 
 // 最近一周的经验记录
-func GetEXPLog(credential *Credential) (result EXPLogResponse, err error) {
-	err = session.Result(EXPLog{Credential: credential}, &result)
-	return
+func GetEXPLog(ctx context.Context, jar http.CookieJar) (EXPLogResponse, error) {
+	return Do[EXPLogResponse](ctx, EXPLog{CookieJar: jar})
 }
 
 // 最近一周的节操记录
 type MoralLog struct {
 	req.Get
-	*Credential
+	http.CookieJar
 
 	JSONP       string `req:"query" default:"jsonp"`
 	WebLocation string `req:"query" default:"333.33"`
@@ -608,9 +589,8 @@ type MoralLogResponse struct {
 }
 
 // 最近一周的节操记录
-func GetMoralLog(credential *Credential) (result MoralLogResponse, err error) {
-	err = session.Result(MoralLog{Credential: credential}, &result)
-	return
+func GetMoralLog(ctx context.Context, jar http.CookieJar) (MoralLogResponse, error) {
+	return Do[MoralLogResponse](ctx, MoralLog{CookieJar: jar})
 }
 
 // https://socialsisteryi.github.io/bilibili-API-collect/docs/login/login_notice.html
@@ -618,7 +598,7 @@ func GetMoralLog(credential *Credential) (result MoralLogResponse, err error) {
 // 查询登录记录
 type LoginNotice struct {
 	req.Get
-	*Credential
+	http.CookieJar
 
 	// 用户 UID（一般是自己的）
 	MID int `req:"query"`
@@ -644,15 +624,14 @@ type LoginNoticeResponse struct {
 }
 
 // 查询登录记录
-func GetLoginNotice(credential *Credential) (result LoginNoticeResponse, err error) {
-	err = session.Result(LoginNotice{MID: credential.UID(), Credential: credential}, &result)
-	return
+func GetLoginNotice(ctx context.Context, jar http.CookieJar, uid int) (LoginNoticeResponse, error) {
+	return Do[LoginNoticeResponse](ctx, LoginNotice{MID: uid, CookieJar: jar})
 }
 
 // 最近一周的登录情况
 type LoginLog struct {
 	req.Get
-	*Credential
+	http.CookieJar
 
 	JSONP       string `req:"query" default:"jsonp"`
 	WebLocation string `req:"query" default:"333.33"`
@@ -678,9 +657,8 @@ type LoginLogResponse struct {
 }
 
 // 最近一周的登录情况
-func GetLoginLog(credential *Credential) (result LoginLogResponse, err error) {
-	err = session.Result(LoginLog{Credential: credential}, &result)
-	return
+func GetLoginLog(ctx context.Context, jar http.CookieJar) (LoginLogResponse, error) {
+	return Do[LoginLogResponse](ctx, LoginLog{CookieJar: jar})
 }
 
 // https://socialsisteryi.github.io/bilibili-API-collect/docs/login/cookie_refresh.html
@@ -703,15 +681,9 @@ type CookieInfoResponse struct {
 	} `json:"data"`
 }
 
-// 携带上下文检查是否需要刷新
-func GetCookieInfoWithContext(ctx context.Context, jar http.CookieJar) (result CookieInfoResponse, err error) {
-	err = session.ResultWithContext(ctx, CookieInfo{CookieJar: jar}, &result)
-	return
-}
-
 // 检查是否需要刷新
-func GetCookieInfo(jar http.CookieJar) (CookieInfoResponse, error) {
-	return GetCookieInfoWithContext(context.Background(), jar)
+func GetCookieInfo(ctx context.Context, jar http.CookieJar) (CookieInfoResponse, error) {
+	return Do[CookieInfoResponse](ctx, CookieInfo{CookieJar: jar})
 }
 
 //go:embed pubkey.pem
@@ -756,12 +728,12 @@ var refreshCSRFPattern = regexp.MustCompile(`<div id="1-name">(.*?)</div>`)
 var ErrRefreshCSRFNotExist = errors.New("bilibili: refresh_csrf does not exist")
 
 // 获取 refresh_csrf
-func GetRefreshCSRFWithContext(ctx context.Context, jar http.CookieJar) (string, error) {
+func GetRefreshCSRF(ctx context.Context, jar http.CookieJar) (string, error) {
 	path, err := GetCorrespondPath(time.Now().UnixMilli())
 	if err != nil {
 		return "", err
 	}
-	s, err := session.TextWithContext(ctx, Correspond{CorrespondPath: path, CookieJar: jar})
+	s, err := Session.TextWithContext(ctx, Correspond{CorrespondPath: path, CookieJar: jar})
 	if err != nil {
 		return "", err
 	}
@@ -770,10 +742,6 @@ func GetRefreshCSRFWithContext(ctx context.Context, jar http.CookieJar) (string,
 		return "", ErrRefreshCSRFNotExist
 	}
 	return r[1], nil
-}
-
-func GetRefreshCSRF(jar http.CookieJar) (string, error) {
-	return GetRefreshCSRFWithContext(context.Background(), jar)
 }
 
 // 刷新 Cookie
@@ -806,17 +774,12 @@ type CookieRefreshResponse struct {
 }
 
 // 刷新 Cookie
-func PostCookieRefreshWithContext(ctx context.Context, token string, jar http.CookieJar) (result CookieRefreshResponse, err error) {
-	key, err := GetRefreshCSRFWithContext(ctx, jar)
+func PostCookieRefresh(ctx context.Context, jar http.CookieJar, token string) (result CookieRefreshResponse, err error) {
+	key, err := GetRefreshCSRF(ctx, jar)
 	if err != nil {
 		return
 	}
-	err = session.ResultWithContext(ctx, CookieRefresh{RefreshCSRF: key, RefreshToken: token, CookieJar: jar}, &result)
-	return
-}
-
-func PostCookieRefresh(token string, jar http.CookieJar) (result CookieRefreshResponse, err error) {
-	return PostCookieRefreshWithContext(context.Background(), token, jar)
+	return Do[CookieRefreshResponse](ctx, CookieRefresh{RefreshCSRF: key, RefreshToken: token, CookieJar: jar})
 }
 
 // 确认更新
@@ -836,18 +799,8 @@ type ConfirmRefreshResponse struct {
 	Error
 }
 
-// 携带上下文确认更新
-func PostConfirmRefreshWithContext(ctx context.Context, token string, jar http.CookieJar) (newRefreshToken string, err error) {
-	r, err := PostCookieRefreshWithContext(ctx, token, jar)
-	if err != nil {
-		return "", err
-	}
-	newRefreshToken = r.Data.RefreshToken
-	err = session.ResultWithContext(ctx, ConfirmRefresh{RefreshToken: token, CookieJar: jar}, &ConfirmRefreshResponse{})
-	return
-}
-
 // 确认更新
-func PostConfirmRefresh(token string, jar http.CookieJar) (string, error) {
-	return PostConfirmRefreshWithContext(context.Background(), token, jar)
+func PostConfirmRefresh(ctx context.Context, jar http.CookieJar, token string) (err error) {
+	_, err = Do[ConfirmRefreshResponse](ctx, ConfirmRefresh{RefreshToken: token, CookieJar: jar})
+	return
 }

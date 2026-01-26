@@ -1,13 +1,18 @@
 package bilibili
 
-import "github.com/Drelf2018/req"
+import (
+	"context"
+	"net/http"
+
+	"github.com/Drelf2018/req"
+)
 
 // https://socialsisteryi.github.io/bilibili-API-collect/docs/vip/info.html
 
 // 卡券状态查询
 type My struct {
 	req.Get
-	*Credential
+	http.CookieJar
 }
 
 func (My) RawURL() string {
@@ -58,9 +63,8 @@ type MyResponse struct {
 }
 
 // 卡券状态查询
-func GetMy(credential *Credential) (result MyResponse, err error) {
-	err = session.Result(My{Credential: credential}, &result)
-	return
+func GetMy(ctx context.Context, jar http.CookieJar) (MyResponse, error) {
+	return Do[MyResponse](ctx, My{CookieJar: jar})
 }
 
 // https://socialsisteryi.github.io/bilibili-API-collect/docs/vip/center.html
@@ -68,7 +72,7 @@ func GetMy(credential *Credential) (result MyResponse, err error) {
 // 大会员中心信息
 type VIPCenterCombine struct {
 	req.Get
-	*Credential
+	http.CookieJar
 
 	// 平台 web端(web) 安卓APP(android)
 	Platform string `req:"query,omitempty"`
@@ -378,15 +382,14 @@ type VIPCenterCombineResponse struct {
 }
 
 // 大会员中心信息
-func GetVIPCenterCombine(credential *Credential) (result VIPCenterCombineResponse, err error) {
-	err = session.Result(VIPCenterCombine{Credential: credential}, &result)
-	return
+func GetVIPCenterCombine(ctx context.Context, jar http.CookieJar) (VIPCenterCombineResponse, error) {
+	return Do[VIPCenterCombineResponse](ctx, VIPCenterCombine{CookieJar: jar})
 }
 
 // 大积分中心信息
 type HomepageCombine struct {
 	req.Get
-	*Credential
+	http.CookieJar
 }
 
 func (HomepageCombine) RawURL() string {
@@ -485,15 +488,14 @@ type HomepageCombineResponse struct {
 }
 
 // 大积分中心信息
-func GetHomepageCombine(credential *Credential) (result HomepageCombineResponse, err error) {
-	err = session.Result(HomepageCombine{Credential: credential}, &result)
-	return
+func GetHomepageCombine(ctx context.Context, jar http.CookieJar) (HomepageCombineResponse, error) {
+	return Do[HomepageCombineResponse](ctx, HomepageCombine{CookieJar: jar})
 }
 
 // 大积分改变记录
 type VIPPointList struct {
 	req.Get
-	*Credential
+	http.CookieJar
 
 	// 改变类型
 	// (0)所有类型
@@ -512,24 +514,6 @@ func (VIPPointList) RawURL() string {
 	return "/vip_point/list"
 }
 
-func (api *VIPPointList) ReadPage() (v VIPPointListResponse, err error) {
-	if api.Pn == 0 {
-		api.Pn = 1
-	}
-	err = session.Result(api, &v)
-	if err != nil {
-		return
-	}
-	if len(v.Data.BigPointList) == 0 {
-		err = ErrNoMorePage
-		return
-	}
-	api.Pn++
-	return
-}
-
-var _ PageReader[VIPPointListResponse] = (*VIPPointList)(nil)
-
 type VIPPointListResponse struct {
 	Error
 	Data struct {
@@ -545,9 +529,8 @@ type VIPPointListResponse struct {
 }
 
 // 大积分改变记录
-func GetVIPPointList(credential *Credential) (result VIPPointListResponse, err error) {
-	err = session.Result(VIPPointList{Credential: credential}, &result)
-	return
+func GetVIPPointList(ctx context.Context, jar http.CookieJar) (VIPPointListResponse, error) {
+	return Do[VIPPointListResponse](ctx, VIPPointList{CookieJar: jar})
 }
 
 // https://socialsisteryi.github.io/bilibili-API-collect/docs/vip/clockin.html
@@ -555,7 +538,7 @@ func GetVIPPointList(credential *Credential) (result VIPPointListResponse, err e
 // 大积分签到
 type TaskSign struct {
 	PostCSRF
-	*Credential
+	http.CookieJar
 }
 
 func (TaskSign) RawURL() string {
@@ -567,9 +550,8 @@ type TaskSignResponse struct {
 }
 
 // 大积分签到
-func PostTaskSign(credential *Credential) (result TaskSignResponse, err error) {
-	err = session.Result(TaskSign{Credential: credential}, &result)
-	return
+func PostTaskSign(ctx context.Context, jar http.CookieJar) (TaskSignResponse, error) {
+	return Do[TaskSignResponse](ctx, TaskSign{CookieJar: jar})
 }
 
 // https://socialsisteryi.github.io/bilibili-API-collect/docs/vip/action.html
@@ -577,7 +559,7 @@ func PostTaskSign(credential *Credential) (result TaskSignResponse, err error) {
 // 大会员每日经验
 type VIPEXPAdd struct {
 	PostCSRF
-	*Credential
+	http.CookieJar
 }
 
 func (VIPEXPAdd) RawURL() string {
@@ -593,7 +575,6 @@ type VIPEXPAddResponse struct {
 }
 
 // 大会员每日经验
-func PostVIPEXPAdd(credential *Credential) (result VIPEXPAddResponse, err error) {
-	err = session.Result(VIPEXPAdd{Credential: credential}, &result)
-	return
+func PostVIPEXPAdd(ctx context.Context, jar http.CookieJar) (VIPEXPAddResponse, error) {
+	return Do[VIPEXPAddResponse](ctx, VIPEXPAdd{CookieJar: jar})
 }

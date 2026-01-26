@@ -1,9 +1,10 @@
 package bilibili
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"strconv"
+	"net/http"
 	"time"
 
 	"github.com/Drelf2018/req"
@@ -14,7 +15,7 @@ import (
 // 未读消息数
 type Unread struct {
 	req.Get
-	*Credential
+	http.CookieJar
 }
 
 func (Unread) RawURL() string {
@@ -40,9 +41,8 @@ type UnreadResponse struct {
 }
 
 // 未读消息数
-func GetUnread(credential *Credential) (result UnreadResponse, err error) {
-	err = session.Result(Unread{Credential: credential}, &result)
-	return
+func GetUnread(ctx context.Context, jar http.CookieJar) (UnreadResponse, error) {
+	return Do[UnreadResponse](ctx, Unread{CookieJar: jar})
 }
 
 // https://socialsisteryi.github.io/bilibili-API-collect/docs/message/private_msg.html
@@ -50,7 +50,7 @@ func GetUnread(credential *Credential) (result UnreadResponse, err error) {
 // 未读私信数
 type SingleUnread struct {
 	req.Get
-	*Credential
+	http.CookieJar
 
 	Build      int    `req:"query,omitempty"`
 	MobiApp    string `req:"query,omitempty"`
@@ -77,9 +77,8 @@ type SingleUnreadResponse struct {
 }
 
 // 未读私信数
-func GetSingleUnread(credential *Credential) (result SingleUnreadResponse, err error) {
-	err = session.Result(SingleUnread{Credential: credential}, &result)
-	return
+func GetSingleUnread(ctx context.Context, jar http.CookieJar) (SingleUnreadResponse, error) {
+	return Do[SingleUnreadResponse](ctx, SingleUnread{CookieJar: jar})
 }
 
 // 发送私信
@@ -89,7 +88,7 @@ func GetSingleUnread(credential *Credential) (result SingleUnreadResponse, err e
 type SendMsg struct {
 	PostCSRF
 	MixinKey
-	*Credential
+	http.CookieJar
 
 	// 发送者 UID
 	WSenderUID int `req:"query"`
@@ -107,7 +106,7 @@ type SendMsg struct {
 	ReceiverType int `req:"body" default:"1:msg[receiver_type]"`
 
 	// 消息类型 详见 content.go
-	MsgType int `req:"body:msg[msg_type]"`
+	MsgType MsgType `req:"body:msg[msg_type]"`
 
 	// 设备信息
 	DeviceID string `req:"body" default:"88A68CB6-CEFC-49BE-87DE-D2A22E549C1E:msg[dev_id]"`
@@ -145,28 +144,23 @@ type SendMsgResponse struct {
 }
 
 // 发送私信
-func PostSendMsg(receiver int, content Content, credential *Credential) (result SendMsgResponse, err error) {
-	myUID, err := strconv.Atoi(credential.DedeUserID)
-	if err != nil {
-		return
-	}
-	err = session.Result(SendMsg{
-		WSenderUID:  myUID,
+func PostSendMsg(ctx context.Context, sender int, receiver int, content Content, jar http.CookieJar) (SendMsgResponse, error) {
+	return Do[SendMsgResponse](ctx, SendMsg{
+		WSenderUID:  sender,
 		WReceiverID: receiver,
-		SenderUID:   myUID,
+		SenderUID:   sender,
 		ReceiverID:  receiver,
 		MsgType:     content.MsgType(),
 		Timestamp:   int(time.Now().Unix()),
 		Content:     content,
-		Credential:  credential,
-	}, &result)
-	return
+		CookieJar:   jar,
+	})
 }
 
 // 私信消息记录
 type FetchSessionMsgs struct {
 	GetWBI
-	*Credential
+	http.CookieJar
 
 	// 聊天对象的 ID
 	TalkerID int `req:"query"`
@@ -193,21 +187,6 @@ type FetchSessionMsgs struct {
 func (FetchSessionMsgs) RawURL() string {
 	return "https://api.vc.bilibili.com/svr_sync/v1/svr_sync/fetch_session_msgs"
 }
-
-func (api *FetchSessionMsgs) ReadPage() (v FetchSessionMsgsResponse, err error) {
-	err = session.Result(api, &v)
-	if err != nil {
-		return
-	}
-	if v.Data.MinSeqno == "18446744073709551615" {
-		err = ErrNoMorePage
-		return
-	}
-	api.EndSeqno = json.Number(v.Data.MinSeqno)
-	return
-}
-
-var _ PageReader[FetchSessionMsgsResponse] = (*FetchSessionMsgs)(nil)
 
 type Message struct {
 	SenderUID      int         `json:"sender_uid"`
@@ -255,14 +234,13 @@ type FetchSessionMsgsResponse struct {
 // beginSeqno: 消息开始的序列号（开区间） 默认 0 为全部
 //
 // endSeqno: 消息结束的序列号（开区间） 默认 0 为全部
-func GetFetchSessionMsgs(talkerID, sessionType, size int, beginSeqno, endSeqno string, credential *Credential) (result FetchSessionMsgsResponse, err error) {
-	err = session.Result(FetchSessionMsgs{
+func GetFetchSessionMsgs(ctx context.Context, talkerID, sessionType, size int, beginSeqno, endSeqno string, jar http.CookieJar) (FetchSessionMsgsResponse, error) {
+	return Do[FetchSessionMsgsResponse](ctx, FetchSessionMsgs{
 		TalkerID:    talkerID,
 		SessionType: sessionType,
 		Size:        size,
 		BeginSeqno:  json.Number(beginSeqno),
 		EndSeqno:    json.Number(endSeqno),
-		Credential:  credential,
-	}, &result)
-	return
+		CookieJar:   jar,
+	})
 }

@@ -6,54 +6,41 @@ import (
 	"github.com/Drelf2018/req/method"
 )
 
+// MsgType 表示消息类型的整数
+type MsgType int
+
 const (
-	// 纯文字消息
-	MsgTypeText = 1
-
-	// 图片消息
-	MsgTypeImage = 2
-
-	// 撤回消息
-	MsgTypeWithdraw = 5
-
-	// 应援团图片
-	// 但似乎不常触发 一般使用 MsgTypeImage 即可
-	MsgTypeGroupsImage = 6
-
-	// 分享视频
-	MsgTypeShareVideo = 7
-
-	// 系统通知
-	MsgTypeNotice = 10
-
-	// UP 主推送的视频
-	MsgTypePushedVideo = 11
-
-	// 新成员加入应援团欢迎
-	MsgTypeWelcome = 306
+	MsgText        = 1   // 纯文字消息
+	MsgImage       = 2   // 图片消息
+	MsgWithdraw    = 5   // 撤回消息
+	MsgGroupsImage = 6   // 应援团图片
+	MsgShareVideo  = 7   // 分享视频
+	MsgNotice      = 10  // 系统通知
+	MsgPushedVideo = 11  // UP 主推送的视频
+	MsgWelcome     = 306 // 新成员加入应援团欢迎
 )
 
-// 内容接口
+// Content 内容接口
 type Content interface {
-	MsgType() int
+	MsgType() MsgType
 }
 
-// 纯文本内容
-type TextContent string
+// Text 纯文本内容
+type Text string
 
-func (TextContent) MsgType() int { return MsgTypeText }
+func (Text) MsgType() MsgType { return MsgText }
 
-var _ Content = TextContent("")
+var _ Content = Text("")
 
-func (c TextContent) MarshalString() string {
-	b, _ := json.Marshal(map[string]TextContent{"content": c})
+func (t Text) MarshalString() string {
+	b, _ := json.Marshal(map[string]Text{"content": t})
 	return string(b)
 }
 
-var _ method.Marshaler = TextContent("")
+var _ method.Marshaler = Text("")
 
-// 图片内容
-type ImageContent struct {
+// Image 图片内容
+type Image struct {
 	URL      string `json:"url"`                // 图片链接 默认为相簿图片上传通道 也可用三方图床
 	Width    int    `json:"width,omitempty"`    // 图片的宽	单位像素 非必要
 	Height   int    `json:"height,omitempty"`   // 图片的高	单位像素 非必要
@@ -62,13 +49,13 @@ type ImageContent struct {
 	Size     int    `json:"size,omitempty"`     // 文件大小	单位千字节 非必要
 }
 
-func (ImageContent) MsgType() int { return MsgTypeImage }
+func (Image) MsgType() MsgType { return MsgImage }
 
-var _ Content = ImageContent{}
+var _ Content = Image{}
 
-// 撤回消息内容
-type WithdrawContent string
+// Withdraw 撤回消息内容
+type Withdraw string
 
-func (WithdrawContent) MsgType() int { return MsgTypeWithdraw }
+func (Withdraw) MsgType() MsgType { return MsgWithdraw }
 
-var _ Content = WithdrawContent("")
+var _ Content = Withdraw("")

@@ -1,6 +1,10 @@
 package bilibili
 
-import "github.com/Drelf2018/req"
+import (
+	"context"
+
+	"github.com/Drelf2018/req"
+)
 
 // https://socialsisteryi.github.io/bilibili-API-collect/docs/video/collection.html
 
@@ -62,24 +66,6 @@ func (SeriesArchives) RawURL() string {
 	return "/series/archives"
 }
 
-func (api *SeriesArchives) ReadPage() (v SeriesArchivesResponse, err error) {
-	if api.Pn == 0 {
-		api.Pn = 1
-	}
-	err = session.Result(api, &v)
-	if err != nil {
-		return
-	}
-	if len(v.Data.Archives) == 0 {
-		err = ErrNoMorePage
-		return
-	}
-	api.Pn++
-	return
-}
-
-var _ PageReader[SeriesArchivesResponse] = (*SeriesArchives)(nil)
-
 type SeriesArchivesResponse struct {
 	Error
 	Data struct {
@@ -94,7 +80,6 @@ type SeriesArchivesResponse struct {
 }
 
 // 获取指定系列视频
-func GetSeriesArchives(uid int, seriesID int) (result SeriesArchivesResponse, err error) {
-	err = session.Result(SeriesArchives{MID: uid, SeriesID: seriesID}, &result)
-	return
+func GetSeriesArchives(ctx context.Context, uid int, seriesID int) (SeriesArchivesResponse, error) {
+	return Do[SeriesArchivesResponse](ctx, SeriesArchives{MID: uid, SeriesID: seriesID})
 }

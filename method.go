@@ -2,6 +2,7 @@ package bilibili
 
 import (
 	"bytes"
+	"context"
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
@@ -52,13 +53,12 @@ func SplitURL(url string) string {
 //
 // 成功后会刷新 mixinKeyUpdateTime
 func UpdateMixinKey() error {
-	r, err := GetNav(nil)
+	r, err := GetNav(context.Background(), nil)
 	if err != nil {
 		return err
 	}
 	if r.Code != 0 && r.Code != -101 {
-		e := Error{r.Code, r.Message}
-		return e.Unwrap()
+		return Error{Code: r.Code, Message: r.Message, caller: "bilibili.UpdateMixinKey"}
 	}
 	mixinKey = GenerateMixinKey(SplitURL(r.Data.WbiImg.ImgURL) + SplitURL(r.Data.WbiImg.SubURL))
 	return nil

@@ -1,6 +1,11 @@
 package bilibili
 
-import "github.com/Drelf2018/req"
+import (
+	"context"
+	"net/http"
+
+	"github.com/Drelf2018/req"
+)
 
 // https://socialsisteryi.github.io/bilibili-API-collect/docs/live/info.html
 
@@ -94,9 +99,8 @@ type RoomInfoResponse struct {
 }
 
 // 获取直播间信息
-func GetRoomInfo(roomid int) (result RoomInfoResponse, err error) {
-	err = session.Result(RoomInfo{RoomID: roomid}, &result)
-	return
+func GetRoomInfo(ctx context.Context, roomid int) (RoomInfoResponse, error) {
+	return Do[RoomInfoResponse](ctx, RoomInfo{RoomID: roomid})
 }
 
 // https://socialsisteryi.github.io/bilibili-API-collect/docs/live/message_stream.html
@@ -104,7 +108,7 @@ func GetRoomInfo(roomid int) (result RoomInfoResponse, err error) {
 // 获取信息流认证密钥
 type DanmuInfo struct {
 	req.Get
-	*Credential
+	http.CookieJar
 
 	// 直播间真实 ID
 	ID int `req:"query"`
@@ -135,7 +139,6 @@ type DanmuInfoResponse struct {
 // 获取信息流认证密钥
 //
 // 参数 roomid 为直播间真实 ID
-func GetDanmuInfo(roomid int, credential *Credential) (result DanmuInfoResponse, err error) {
-	err = session.Result(DanmuInfo{ID: roomid, Credential: credential}, &result)
-	return
+func GetDanmuInfo(ctx context.Context, jar http.CookieJar, roomid int) (DanmuInfoResponse, error) {
+	return Do[DanmuInfoResponse](ctx, DanmuInfo{ID: roomid, CookieJar: jar})
 }

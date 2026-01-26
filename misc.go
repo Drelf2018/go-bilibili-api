@@ -1,6 +1,10 @@
 package bilibili
 
-import "github.com/Drelf2018/req"
+import (
+	"context"
+
+	"github.com/Drelf2018/req"
+)
 
 // https://socialsisteryi.github.io/bilibili-API-collect/docs/misc/time_stamp.html
 
@@ -21,9 +25,8 @@ type NowResponse struct {
 }
 
 // 获取当前时间戳
-func GetNow() (result NowResponse, err error) {
-	err = session.Result(Now{}, &result)
-	return
+func GetNow(ctx context.Context) (NowResponse, error) {
+	return Do[NowResponse](ctx, Now{})
 }
 
 // 获取适用于 RTC 的时间戳
@@ -44,9 +47,8 @@ type TimestampResponse struct {
 }
 
 // 获取适用于 RTC 的时间戳
-func GetTimestamp() (result TimestampResponse, err error) {
-	err = session.Result(Timestamp{}, &result)
-	return
+func GetTimestamp(ctx context.Context) (TimestampResponse, error) {
+	return Do[TimestampResponse](ctx, Timestamp{})
 }
 
 // https://socialsisteryi.github.io/bilibili-API-collect/docs/misc/buvid3_4.html
@@ -69,14 +71,13 @@ type SPIResponse struct {
 }
 
 // 接口获取 buvid3 / buvid4
-func GetSPI() (result SPIResponse, err error) {
-	err = session.Result(SPI{}, &result)
-	return
+func GetSPI(ctx context.Context) (SPIResponse, error) {
+	return Do[SPIResponse](ctx, SPI{})
 }
 
 // 接口获取 buvid3
-func GetBuvid3() string {
-	r, err := GetSPI()
+func GetBuvid3(ctx context.Context) string {
+	r, err := GetSPI(ctx)
 	if err != nil {
 		return ""
 	}

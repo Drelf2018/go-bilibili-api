@@ -1,6 +1,8 @@
 package bilibili
 
 import (
+	"context"
+	"net/http"
 	"strconv"
 	"strings"
 
@@ -12,7 +14,7 @@ import (
 // 用户空间详细信息
 type AccInfo struct {
 	GetWBI
-	*Credential
+	http.CookieJar
 
 	// 目标用户 UID
 	MID int `req:"query"`
@@ -170,15 +172,14 @@ type AccInfoResponse struct {
 }
 
 // 用户空间详细信息
-func GetAccInfo(uid int, credential *Credential) (result AccInfoResponse, err error) {
-	err = session.Result(AccInfo{MID: uid, Credential: credential}, &result)
-	return
+func GetAccInfo(ctx context.Context, jar http.CookieJar, uid int) (AccInfoResponse, error) {
+	return Do[AccInfoResponse](ctx, AccInfo{MID: uid, CookieJar: jar})
 }
 
 // 用户名片信息
 type Card struct {
 	req.Get
-	*Credential
+	http.CookieJar
 
 	// 目标用户 UID
 	MID int `req:"query"`
@@ -299,15 +300,14 @@ type CardResponse struct {
 }
 
 // 用户名片信息
-func GetCard(uid int, credential *Credential) (result CardResponse, err error) {
-	err = session.Result(Card{MID: uid, Photo: true, Credential: credential}, &result)
-	return
+func GetCard(ctx context.Context, jar http.CookieJar, uid int) (CardResponse, error) {
+	return Do[CardResponse](ctx, Card{MID: uid, Photo: true, CookieJar: jar})
 }
 
 // 登录用户空间详细信息
 type MyInfo struct {
 	req.Get
-	*Credential
+	http.CookieJar
 }
 
 func (MyInfo) RawURL() string {
@@ -454,15 +454,14 @@ type MyInfoResponse struct {
 }
 
 // 登录用户空间详细信息
-func GetMyInfo(credential *Credential) (result MyInfoResponse, err error) {
-	err = session.Result(MyInfo{Credential: credential}, &result)
-	return
+func GetMyInfo(ctx context.Context, jar http.CookieJar) (MyInfoResponse, error) {
+	return Do[MyInfoResponse](ctx, MyInfo{CookieJar: jar})
 }
 
 // 多用户详细信息字典
 type CardMap struct {
 	req.Get
-	*Credential
+	http.CookieJar
 
 	// 目标用户的 UID 列表 用(,)间隔
 	// 最多200个成员
@@ -523,15 +522,14 @@ type CardMapResponse struct {
 }
 
 // 多用户详细信息字典
-func GetCardMap(uid []int, credential *Credential) (result CardMapResponse, err error) {
-	err = session.Result(CardMap{UIDs: IntSliceToString(uid), Credential: credential}, &result)
-	return
+func GetCardMap(ctx context.Context, jar http.CookieJar, uid []int) (CardMapResponse, error) {
+	return Do[CardMapResponse](ctx, CardMap{UIDs: IntSliceToString(uid), CookieJar: jar})
 }
 
 // 多用户详细信息切片
 type CardSlice struct {
 	req.Get
-	*Credential
+	http.CookieJar
 
 	// 目标用户的 UID 列表 用(,)间隔
 	// 最多 50 个成员
@@ -556,9 +554,8 @@ type CardSliceResponse struct {
 }
 
 // 多用户详细信息切片
-func GetCardSlice(uid []int, credential *Credential) (result CardSliceResponse, err error) {
-	err = session.Result(CardSlice{UIDs: IntSliceToString(uid), Credential: credential}, &result)
-	return
+func GetCardSlice(ctx context.Context, jar http.CookieJar, uid []int) (CardSliceResponse, error) {
+	return Do[CardSliceResponse](ctx, CardSlice{UIDs: IntSliceToString(uid), CookieJar: jar})
 }
 
 // https://socialsisteryi.github.io/bilibili-API-collect/docs/user/status_number.html
@@ -566,7 +563,7 @@ func GetCardSlice(uid []int, credential *Credential) (result CardSliceResponse, 
 // 关系状态数
 type RelationStat struct {
 	req.Get
-	*Credential
+	http.CookieJar
 
 	// 目标用户 UID
 	Vmid int `req:"query"`
@@ -588,15 +585,14 @@ type RelationStatResponse struct {
 }
 
 // 关系状态数
-func GetRelationStat(uid int, credential *Credential) (result RelationStatResponse, err error) {
-	err = session.Result(RelationStat{Vmid: uid, Credential: credential}, &result)
-	return
+func GetRelationStat(ctx context.Context, jar http.CookieJar, uid int) (RelationStatResponse, error) {
+	return Do[RelationStatResponse](ctx, RelationStat{Vmid: uid, CookieJar: jar})
 }
 
 // UP 主状态数
 type UPStat struct {
 	req.Get
-	*Credential
+	http.CookieJar
 
 	// 目标用户 UID
 	MID int `req:"query"`
@@ -622,9 +618,8 @@ type UPStatResponse struct {
 }
 
 // UP 主状态数
-func GetUPStat(uid int, credential *Credential) (result UPStatResponse, err error) {
-	err = session.Result(UPStat{MID: uid, Credential: credential}, &result)
-	return
+func GetUPStat(ctx context.Context, jar http.CookieJar, uid int) (UPStatResponse, error) {
+	return Do[UPStatResponse](ctx, UPStat{MID: uid, CookieJar: jar})
 }
 
 // 用户导航栏状态数
@@ -668,9 +663,8 @@ type UploadCountResponse struct {
 }
 
 // 相簿投稿数
-func GetUploadCount(uid int) (result UploadCountResponse, err error) {
-	err = session.Result(UploadCount{UID: uid}, &result)
-	return
+func GetUploadCount(ctx context.Context, uid int) (UploadCountResponse, error) {
+	return Do[UploadCountResponse](ctx, UploadCount{UID: uid})
 }
 
 // https://socialsisteryi.github.io/bilibili-API-collect/docs/user/relation.html
@@ -817,7 +811,7 @@ func (r RelationItem) String() string {
 // 查询用户粉丝明细
 type Followers struct {
 	req.Get
-	*Credential
+	http.CookieJar
 
 	// 目标用户 UID
 	Vmid int `req:"query"`
@@ -833,24 +827,6 @@ func (Followers) RawURL() string {
 	return "/relation/followers"
 }
 
-func (api *Followers) ReadPage() (v FollowersResponse, err error) {
-	if api.Pn == 0 {
-		api.Pn = 1
-	}
-	err = session.Result(api, &v)
-	if err != nil {
-		return
-	}
-	if len(v.Data.List) == 0 {
-		err = ErrNoMorePage
-		return
-	}
-	api.Pn++
-	return
-}
-
-var _ PageReader[FollowersResponse] = (*Followers)(nil)
-
 type FollowersResponse struct {
 	Error
 	Data struct {
@@ -861,15 +837,14 @@ type FollowersResponse struct {
 }
 
 // 查询用户粉丝明细
-func GetFollowers(uid int, credential *Credential) (result FollowersResponse, err error) {
-	err = session.Result(Followers{Vmid: uid, Credential: credential}, &result)
-	return
+func GetFollowers(ctx context.Context, jar http.CookieJar, uid int) (FollowersResponse, error) {
+	return Do[FollowersResponse](ctx, Followers{Vmid: uid, CookieJar: jar})
 }
 
 // 查询用户关注明细
 type RelationFollowings struct {
 	req.Get
-	*Credential
+	http.CookieJar
 
 	// 目标用户 UID
 	Vmid int `req:"query"`
@@ -890,24 +865,6 @@ func (RelationFollowings) RawURL() string {
 	return "/relation/followings"
 }
 
-func (api *RelationFollowings) ReadPage() (v RelationFollowingsResponse, err error) {
-	if api.Pn == 0 {
-		api.Pn = 1
-	}
-	err = session.Result(api, &v)
-	if err != nil {
-		return
-	}
-	if len(v.Data.List) == 0 {
-		err = ErrNoMorePage
-		return
-	}
-	api.Pn++
-	return
-}
-
-var _ PageReader[RelationFollowingsResponse] = (*RelationFollowings)(nil)
-
 type RelationFollowingsResponse struct {
 	Error
 	Data struct {
@@ -918,15 +875,14 @@ type RelationFollowingsResponse struct {
 }
 
 // 查询用户关注明细
-func GetRelationFollowings(uid int, credential *Credential) (result RelationFollowingsResponse, err error) {
-	err = session.Result(RelationFollowings{Vmid: uid, Credential: credential}, &result)
-	return
+func GetRelationFollowings(ctx context.Context, jar http.CookieJar, uid int) (RelationFollowingsResponse, error) {
+	return Do[RelationFollowingsResponse](ctx, RelationFollowings{Vmid: uid, CookieJar: jar})
 }
 
 // 搜索关注明细
 type FollowingsSearch struct {
 	req.Get
-	*Credential
+	http.CookieJar
 
 	// 目标用户 UID
 	Vmid int `req:"query"`
@@ -945,24 +901,6 @@ func (FollowingsSearch) RawURL() string {
 	return "/relation/followings/search"
 }
 
-func (api *FollowingsSearch) ReadPage() (v FollowingsSearchResponse, err error) {
-	if api.Pn == 0 {
-		api.Pn = 1
-	}
-	err = session.Result(api, &v)
-	if err != nil {
-		return
-	}
-	if len(v.Data.List) == 0 {
-		err = ErrNoMorePage
-		return
-	}
-	api.Pn++
-	return
-}
-
-var _ PageReader[FollowingsSearchResponse] = (*FollowingsSearch)(nil)
-
 type FollowingsSearchResponse struct {
 	Error
 	Data struct {
@@ -972,15 +910,14 @@ type FollowingsSearchResponse struct {
 }
 
 // 搜索关注明细
-func GetFollowingsSearch(uid int, name string, credential *Credential) (result FollowingsSearchResponse, err error) {
-	err = session.Result(FollowingsSearch{Vmid: uid, Name: name, Credential: credential}, &result)
-	return
+func GetFollowingsSearch(ctx context.Context, jar http.CookieJar, uid int, name string) (FollowingsSearchResponse, error) {
+	return Do[FollowingsSearchResponse](ctx, FollowingsSearch{Vmid: uid, Name: name, CookieJar: jar})
 }
 
 // 查询共同关注明细
 type SameFollowings struct {
 	req.Get
-	*Credential
+	http.CookieJar
 
 	// 目标用户 UID
 	Vmid int `req:"query"`
@@ -996,24 +933,6 @@ func (SameFollowings) RawURL() string {
 	return "/relation/same/followings"
 }
 
-func (api *SameFollowings) ReadPage() (v SameFollowingsResponse, err error) {
-	if api.Pn == 0 {
-		api.Pn = 1
-	}
-	err = session.Result(api, &v)
-	if err != nil {
-		return
-	}
-	if len(v.Data.List) == 0 {
-		err = ErrNoMorePage
-		return
-	}
-	api.Pn++
-	return
-}
-
-var _ PageReader[SameFollowingsResponse] = (*SameFollowings)(nil)
-
 type SameFollowingsResponse struct {
 	Error
 	Data struct {
@@ -1024,15 +943,14 @@ type SameFollowingsResponse struct {
 }
 
 // 查询共同关注明细
-func GetSameFollowings(uid int, credential *Credential) (result SameFollowingsResponse, err error) {
-	err = session.Result(SameFollowings{Vmid: uid, Credential: credential}, &result)
-	return
+func GetSameFollowings(ctx context.Context, jar http.CookieJar, uid int) (SameFollowingsResponse, error) {
+	return Do[SameFollowingsResponse](ctx, SameFollowings{Vmid: uid, CookieJar: jar})
 }
 
 // 查询悄悄关注明细
 type Whispers struct {
 	req.Get
-	*Credential
+	http.CookieJar
 }
 
 func (Whispers) RawURL() string {
@@ -1048,15 +966,14 @@ type WhispersResponse struct {
 }
 
 // 查询悄悄关注明细
-func GetWhispers(credential *Credential) (result WhispersResponse, err error) {
-	err = session.Result(Whispers{Credential: credential}, &result)
-	return
+func GetWhispers(ctx context.Context, jar http.CookieJar) (WhispersResponse, error) {
+	return Do[WhispersResponse](ctx, Whispers{CookieJar: jar})
 }
 
 // 查询互相关注明细
 type Friends struct {
 	req.Get
-	*Credential
+	http.CookieJar
 }
 
 func (Friends) RawURL() string {
@@ -1072,15 +989,14 @@ type FriendsResponse struct {
 }
 
 // 查询互相关注明细
-func GetFriends(credential *Credential) (result FriendsResponse, err error) {
-	err = session.Result(Friends{Credential: credential}, &result)
-	return
+func GetFriends(ctx context.Context, jar http.CookieJar) (FriendsResponse, error) {
+	return Do[FriendsResponse](ctx, Friends{CookieJar: jar})
 }
 
 // 查询黑名单明细
 type Blacks struct {
 	req.Get
-	*Credential
+	http.CookieJar
 
 	// 分页页数
 	Pn int `req:"query" default:"1"`
@@ -1093,24 +1009,6 @@ func (Blacks) RawURL() string {
 	return "/relation/blacks"
 }
 
-func (api *Blacks) ReadPage() (v BlacksResponse, err error) {
-	if api.Pn == 0 {
-		api.Pn = 1
-	}
-	err = session.Result(api, &v)
-	if err != nil {
-		return
-	}
-	if len(v.Data.List) == 0 {
-		err = ErrNoMorePage
-		return
-	}
-	api.Pn++
-	return
-}
-
-var _ PageReader[BlacksResponse] = (*Blacks)(nil)
-
 type BlacksResponse struct {
 	Error
 	Data struct {
@@ -1121,15 +1019,14 @@ type BlacksResponse struct {
 }
 
 // 查询黑名单明细
-func GetBlacks(credential *Credential) (result BlacksResponse, err error) {
-	err = session.Result(Blacks{Credential: credential}, &result)
-	return
+func GetBlacks(ctx context.Context, jar http.CookieJar) (BlacksResponse, error) {
+	return Do[BlacksResponse](ctx, Blacks{CookieJar: jar})
 }
 
 // 操作用户关系
 type RelationModify struct {
 	PostCSRF
-	*Credential
+	http.CookieJar
 	// TODO
 }
 
@@ -1140,7 +1037,7 @@ func (RelationModify) RawURL() string {
 // 批量操作用户关系
 type BatchModify struct {
 	PostCSRF
-	*Credential
+	http.CookieJar
 	// TODO
 }
 
@@ -1175,7 +1072,7 @@ type QueryRelation struct {
 // 查询用户与自己关系（仅关注）
 type Relation struct {
 	req.Get
-	*Credential
+	http.CookieJar
 
 	// 目标用户 UID
 	FID int `req:"query"`
@@ -1191,15 +1088,14 @@ type RelationResponse struct {
 }
 
 // 查询用户与自己关系（仅关注）
-func GetRelation(uid int, credential *Credential) (result RelationResponse, err error) {
-	err = session.Result(Relation{FID: uid, Credential: credential}, &result)
-	return
+func GetRelation(ctx context.Context, jar http.CookieJar, uid int) (RelationResponse, error) {
+	return Do[RelationResponse](ctx, Relation{FID: uid, CookieJar: jar})
 }
 
 // 查询用户与自己关系（互相关系）
 type AccRelation struct {
 	GetWBI
-	*Credential
+	http.CookieJar
 
 	// 目标用户 UID
 	MID int `req:"query"`
@@ -1218,15 +1114,14 @@ type AccRelationResponse struct {
 }
 
 // 查询用户与自己关系（互相关系）
-func GetAccRelation(uid int, credential *Credential) (result AccRelationResponse, err error) {
-	err = session.Result(AccRelation{MID: uid, Credential: credential}, &result)
-	return
+func GetAccRelation(ctx context.Context, jar http.CookieJar, uid int) (AccRelationResponse, error) {
+	return Do[AccRelationResponse](ctx, AccRelation{MID: uid, CookieJar: jar})
 }
 
 // 批量查询用户与自己关系
 type Relations struct {
 	req.Get
-	*Credential
+	http.CookieJar
 
 	// 目标用户 UID 用(,)间隔
 	FIDs string `req:"query"`
@@ -1242,15 +1137,14 @@ type RelationsResponse struct {
 }
 
 // 批量查询用户与自己关系
-func GetRelations(uid []int, credential *Credential) (result RelationsResponse, err error) {
-	err = session.Result(Relations{FIDs: IntSliceToString(uid), Credential: credential}, &result)
-	return
+func GetRelations(ctx context.Context, jar http.CookieJar, uid []int) (RelationsResponse, error) {
+	return Do[RelationsResponse](ctx, Relations{FIDs: IntSliceToString(uid), CookieJar: jar})
 }
 
 // 查询关注分组列表
 type Tags struct {
 	req.Get
-	*Credential
+	http.CookieJar
 }
 
 func (Tags) RawURL() string {
@@ -1268,15 +1162,14 @@ type TagsResponse struct {
 }
 
 // 查询关注分组列表
-func GetTags(credential *Credential) (result TagsResponse, err error) {
-	err = session.Result(Tags{Credential: credential}, &result)
-	return
+func GetTags(ctx context.Context, jar http.CookieJar) (TagsResponse, error) {
+	return Do[TagsResponse](ctx, Tags{CookieJar: jar})
 }
 
 // 查询关注分组明细
 type Tag struct {
 	req.Get
-	*Credential
+	http.CookieJar
 
 	// 分组 id
 	TagID int `req:"query:tagid"`
@@ -1297,39 +1190,20 @@ func (Tag) RawURL() string {
 	return "/relation/tag"
 }
 
-func (api *Tag) ReadPage() (v TagResponse, err error) {
-	if api.Pn == 0 {
-		api.Pn = 1
-	}
-	err = session.Result(api, &v)
-	if err != nil {
-		return
-	}
-	if len(v.Data) == 0 {
-		err = ErrNoMorePage
-		return
-	}
-	api.Pn++
-	return
-}
-
-var _ PageReader[TagResponse] = (*Tag)(nil)
-
 type TagResponse struct {
 	Error
 	Data []RelationItem `json:"data"`
 }
 
 // 查询关注分组明细
-func GetTag(tagid int, credential *Credential) (result TagResponse, err error) {
-	err = session.Result(Tag{TagID: tagid, Credential: credential}, &result)
-	return
+func GetTag(ctx context.Context, jar http.CookieJar, tagid int) (TagResponse, error) {
+	return Do[TagResponse](ctx, Tag{TagID: tagid, CookieJar: jar})
 }
 
 // 查询目标用户所在的分组
 type User struct {
 	req.Get
-	*Credential
+	http.CookieJar
 
 	// 目标用户 UID
 	FID int `req:"query"`
@@ -1345,15 +1219,14 @@ type UserResponse struct {
 }
 
 // 查询目标用户所在的分组
-func GetUser(uid int, credential *Credential) (result UserResponse, err error) {
-	err = session.Result(User{FID: uid, Credential: credential}, &result)
-	return
+func GetUser(ctx context.Context, jar http.CookieJar, uid int) (UserResponse, error) {
+	return Do[UserResponse](ctx, User{FID: uid, CookieJar: jar})
 }
 
 // 查询所有特别关注 UID
 type Special struct {
 	req.Get
-	*Credential
+	http.CookieJar
 }
 
 func (Special) RawURL() string {
@@ -1366,15 +1239,14 @@ type SpecialResponse struct {
 }
 
 // 查询所有特别关注 UID
-func GetSpecial(credential *Credential) (result SpecialResponse, err error) {
-	err = session.Result(Special{Credential: credential}, &result)
-	return
+func GetSpecial(ctx context.Context, jar http.CookieJar) (SpecialResponse, error) {
+	return Do[SpecialResponse](ctx, Special{CookieJar: jar})
 }
 
 // 创建分组
 type Create struct {
 	PostCSRF
-	*Credential
+	http.CookieJar
 
 	// 分组名 最长 16 字符
 	Tag string `req:"body"`
@@ -1392,15 +1264,14 @@ type CreateResponse struct {
 }
 
 // 创建分组
-func PostCreate(tag string, credential *Credential) (result CreateResponse, err error) {
-	err = session.Result(Create{Tag: tag, Credential: credential}, &result)
-	return
+func PostCreate(ctx context.Context, jar http.CookieJar, tag string) (CreateResponse, error) {
+	return Do[CreateResponse](ctx, Create{Tag: tag, CookieJar: jar})
 }
 
 // 重命名分组
 type Update struct {
 	PostCSRF
-	*Credential
+	http.CookieJar
 
 	// 分组 id
 	TagID int `req:"body:tagid"`
@@ -1418,15 +1289,14 @@ type UpdateResponse struct {
 }
 
 // 重命名分组
-func PostUpdate(tag int, name string, credential *Credential) (result UpdateResponse, err error) {
-	err = session.Result(Update{TagID: tag, Name: name, Credential: credential}, &result)
-	return
+func PostUpdate(ctx context.Context, jar http.CookieJar, tag int, name string) (UpdateResponse, error) {
+	return Do[UpdateResponse](ctx, Update{TagID: tag, Name: name, CookieJar: jar})
 }
 
 // 删除分组
 type Del struct {
 	PostCSRF
-	*Credential
+	http.CookieJar
 
 	// 分组 id
 	TagID int `req:"body:tagid"`
@@ -1441,9 +1311,8 @@ type DelResponse struct {
 }
 
 // 删除分组
-func PostDel(tagid int, credential *Credential) (result DelResponse, err error) {
-	err = session.Result(Del{TagID: tagid, Credential: credential}, &result)
-	return
+func PostDel(ctx context.Context, jar http.CookieJar, tagid int) (DelResponse, error) {
+	return Do[DelResponse](ctx, Del{TagID: tagid, CookieJar: jar})
 }
 
 // 修改分组成员
@@ -1451,7 +1320,7 @@ func PostDel(tagid int, credential *Credential) (result DelResponse, err error) 
 // 如需删除分组中的成员 请将 tagids 设为 0 即移动至默认分组 而不是取关
 type AddUsers struct {
 	PostCSRF
-	*Credential
+	http.CookieJar
 
 	// 目标用户 UID 用(,)间隔
 	FIDs string `req:"query"`
@@ -1480,15 +1349,14 @@ func IntSliceToString(num []int) string {
 // 修改分组成员
 //
 // 如需删除分组中的成员 请将 tagids 设为 0 即移动至默认分组 而不是取关
-func PostAddUsers(uid, tagid []int, credential *Credential) (result AddUsersResponse, err error) {
-	err = session.Result(AddUsers{FIDs: IntSliceToString(uid), TagIDs: IntSliceToString(tagid), Credential: credential}, &result)
-	return
+func PostAddUsers(ctx context.Context, jar http.CookieJar, uid, tagid []int) (AddUsersResponse, error) {
+	return Do[AddUsersResponse](ctx, AddUsers{FIDs: IntSliceToString(uid), TagIDs: IntSliceToString(tagid), CookieJar: jar})
 }
 
 // 复制关注到分组
 type CopyUsers struct {
 	PostCSRF
-	*Credential
+	http.CookieJar
 
 	// 待复制用户 UID 用(,)间隔
 	FIDs string `req:"query"`
@@ -1506,15 +1374,14 @@ type CopyUsersResponse struct {
 }
 
 // 复制关注到分组
-func PostCopyUsers(uid, tagid []int, credential *Credential) (result CopyUsersResponse, err error) {
-	err = session.Result(CopyUsers{FIDs: IntSliceToString(uid), TagIDs: IntSliceToString(tagid), Credential: credential}, &result)
-	return
+func PostCopyUsers(ctx context.Context, jar http.CookieJar, uid, tagid []int) (CopyUsersResponse, error) {
+	return Do[CopyUsersResponse](ctx, CopyUsers{FIDs: IntSliceToString(uid), TagIDs: IntSliceToString(tagid), CookieJar: jar})
 }
 
 // 移动关注到分组
 type MoveUsers struct {
 	PostCSRF
-	*Credential
+	http.CookieJar
 
 	// 原分组 id 列表 用(,)间隔
 	BeforeTagIDs string `req:"body:beforeTagids"`
@@ -1535,14 +1402,13 @@ type MoveUsersResponse struct {
 }
 
 // 移动关注到分组
-func PostMoveUsers(uid, beforeTagid, afterTagid []int, credential *Credential) (result MoveUsersResponse, err error) {
-	err = session.Result(MoveUsers{
+func PostMoveUsers(ctx context.Context, jar http.CookieJar, uid, beforeTagid, afterTagid []int) (MoveUsersResponse, error) {
+	return Do[MoveUsersResponse](ctx, MoveUsers{
 		BeforeTagIDs: IntSliceToString(beforeTagid),
 		AfterTagIDs:  IntSliceToString(afterTagid),
 		FIDs:         IntSliceToString(uid),
-		Credential:   credential,
-	}, &result)
-	return
+		CookieJar:    jar,
+	})
 }
 
 // https://socialsisteryi.github.io/bilibili-API-collect/docs/user/medals.html
@@ -1550,7 +1416,7 @@ func PostMoveUsers(uid, beforeTagid, afterTagid []int, credential *Credential) (
 // 指定用户的所有粉丝勋章信息
 type MedalWall struct {
 	req.Get
-	*Credential
+	http.CookieJar
 
 	// 目标 UID
 	TargetID int `req:"query"`
@@ -1620,9 +1486,8 @@ type MedalWallResponse struct {
 }
 
 // 指定用户的所有粉丝勋章信息
-func GetMedalWall(uid int, credential *Credential) (result MedalWallResponse, err error) {
-	err = session.Result(MedalWall{TargetID: uid, Credential: credential}, &result)
-	return
+func GetMedalWall(ctx context.Context, jar http.CookieJar, uid int) (MedalWallResponse, error) {
+	return Do[MedalWallResponse](ctx, MedalWall{TargetID: uid, CookieJar: jar})
 }
 
 // https://socialsisteryi.github.io/bilibili-API-collect/docs/user/space.html
@@ -1732,15 +1597,14 @@ type ArcResponse struct {
 }
 
 // 查询用户置顶视频
-func GetArc(uid int) (result ArcResponse, err error) {
-	err = session.Result(Arc{Vmid: uid}, &result)
-	return
+func GetArc(ctx context.Context, uid int) (ArcResponse, error) {
+	return Do[ArcResponse](ctx, Arc{Vmid: uid})
 }
 
 // 设置置顶视频
 type Set struct {
 	PostCSRF
-	*Credential
+	http.CookieJar
 
 	// 置顶目标稿件 avid
 	// 与 bvid 任选一个
@@ -1763,15 +1627,14 @@ type SetResponse struct {
 }
 
 // 设置置顶视频
-func PostSet(bvid, reason string, credential *Credential) (result SetResponse, err error) {
-	err = session.Result(Set{BVID: bvid, Reason: reason, Credential: credential}, &result)
-	return
+func PostSet(ctx context.Context, jar http.CookieJar, bvid, reason string) (SetResponse, error) {
+	return Do[SetResponse](ctx, Set{BVID: bvid, Reason: reason, CookieJar: jar})
 }
 
 // 取消置顶视频
 type Cancel struct {
 	PostCSRF
-	*Credential
+	http.CookieJar
 }
 
 func (Cancel) RawURL() string {
@@ -1783,9 +1646,8 @@ type CancelResponse struct {
 }
 
 // 取消置顶视频
-func PostCancel(credential *Credential) (result CancelResponse, err error) {
-	err = session.Result(Cancel{Credential: credential}, &result)
-	return
+func PostCancel(ctx context.Context, jar http.CookieJar) (CancelResponse, error) {
+	return Do[CancelResponse](ctx, Cancel{CookieJar: jar})
 }
 
 // 查询用户代表作视频列表
@@ -1806,15 +1668,14 @@ type MasterpieceResponse struct {
 }
 
 // 查询用户代表作视频列表
-func GetMasterpiece(uid int) (result MasterpieceResponse, err error) {
-	err = session.Result(Masterpiece{Vmid: uid}, &result)
-	return
+func GetMasterpiece(ctx context.Context, uid int) (MasterpieceResponse, error) {
+	return Do[MasterpieceResponse](ctx, Masterpiece{Vmid: uid})
 }
 
 // 添加代表作视频
 type Add struct {
 	PostCSRF
-	*Credential
+	http.CookieJar
 
 	// 置顶目标稿件 avid
 	// 与 bvid 任选一个
@@ -1837,15 +1698,14 @@ type AddResponse struct {
 }
 
 // 添加代表作视频
-func PostAdd(bvid, reason string, credential *Credential) (result AddResponse, err error) {
-	err = session.Result(Add{BVID: bvid, Reason: reason, Credential: credential}, &result)
-	return
+func PostAdd(ctx context.Context, jar http.CookieJar, bvid, reason string) (AddResponse, error) {
+	return Do[AddResponse](ctx, Add{BVID: bvid, Reason: reason, CookieJar: jar})
 }
 
 // 删除代表作视频
 type MasterpieceCancel struct {
 	PostCSRF
-	*Credential
+	http.CookieJar
 
 	// 取消置顶稿件 avid
 	// 与 bvid 任选一个
@@ -1865,9 +1725,8 @@ type MasterpieceCancelResponse struct {
 }
 
 // 删除代表作视频
-func PostMasterpieceCancel(bvid string, credential *Credential) (result MasterpieceCancelResponse, err error) {
-	err = session.Result(MasterpieceCancel{BVID: bvid, Credential: credential}, &result)
-	return
+func PostMasterpieceCancel(ctx context.Context, jar http.CookieJar, bvid string) (MasterpieceCancelResponse, error) {
+	return Do[MasterpieceCancelResponse](ctx, MasterpieceCancel{BVID: bvid, CookieJar: jar})
 }
 
 // 查看用户个人 TAG
@@ -1891,15 +1750,14 @@ type AccTagsResponse struct {
 }
 
 // 查看用户个人 TAG
-func GetAccTags(uid int) (result AccTagsResponse, err error) {
-	err = session.Result(AccTags{MID: uid}, &result)
-	return
+func GetAccTags(ctx context.Context, uid int) (AccTagsResponse, error) {
+	return Do[AccTagsResponse](ctx, AccTags{MID: uid})
 }
 
 // 修改个人 TAG
 type TagsSet struct {
 	PostCSRF
-	*Credential
+	http.CookieJar
 
 	// 要设置的 TAG 内容 用(,)间隔
 	Tags string `req:"body"`
@@ -1914,9 +1772,8 @@ type TagsSetResponse struct {
 }
 
 // 修改个人 TAG
-func PostTagsSet(tags []string, credential *Credential) (result TagsSetResponse, err error) {
-	err = session.Result(TagsSet{Tags: strings.Join(tags, ","), Credential: credential}, &result)
-	return
+func PostTagsSet(ctx context.Context, jar http.CookieJar, tags []string) (TagsSetResponse, error) {
+	return Do[TagsSetResponse](ctx, TagsSet{Tags: strings.Join(tags, ","), CookieJar: jar})
 }
 
 // 查看用户空间公告
@@ -1937,15 +1794,14 @@ type NoticeResponse struct {
 }
 
 // 查看用户空间公告
-func GetNotice(uid int) (result NoticeResponse, err error) {
-	err = session.Result(Notice{MID: uid}, &result)
-	return
+func GetNotice(ctx context.Context, uid int) (NoticeResponse, error) {
+	return Do[NoticeResponse](ctx, Notice{MID: uid})
 }
 
 // 修改空间公告
 type NoticeSet struct {
 	PostCSRF
-	*Credential
+	http.CookieJar
 
 	// 要设置的公告内容
 	Notice string `req:"body"`
@@ -1960,9 +1816,8 @@ type NoticeSetResponse struct {
 }
 
 // 修改空间公告
-func PostNoticeSet(notice string, credential *Credential) (result NoticeSetResponse, err error) {
-	err = session.Result(NoticeSet{Notice: notice, Credential: credential}, &result)
-	return
+func PostNoticeSet(ctx context.Context, jar http.CookieJar, notice string) (NoticeSetResponse, error) {
+	return Do[NoticeSetResponse](ctx, NoticeSet{Notice: notice, CookieJar: jar})
 }
 
 // 查询空间设置
@@ -2025,9 +1880,8 @@ type SettingsResponse struct {
 }
 
 // 查询空间设置
-func GetSettings(uid int) (result SettingsResponse, err error) {
-	err = session.Result(Settings{MID: uid}, &result)
-	return
+func GetSettings(ctx context.Context, uid int) (SettingsResponse, error) {
+	return Do[SettingsResponse](ctx, Settings{MID: uid})
 }
 
 // 查询可用头图列表 (Web端)
@@ -2061,15 +1915,14 @@ type TopPhotoListResponse struct {
 }
 
 // 查询可用头图列表 (Web端)
-func GetTopPhotoList(uid int) (result TopPhotoListResponse, err error) {
-	err = session.Result(TopPhotoList{MID: uid}, &result)
-	return
+func GetTopPhotoList(ctx context.Context, uid int) (TopPhotoListResponse, error) {
+	return Do[TopPhotoListResponse](ctx, TopPhotoList{MID: uid})
 }
 
 // 设置空间头图 (Web端)
 type SetToutu struct {
 	PostCSRF
-	*Credential
+	http.CookieJar
 
 	// 头图 ID
 	ID int `req:"body"`
@@ -2085,15 +1938,14 @@ type SetToutuResponse struct {
 }
 
 // 设置空间头图 (Web端)
-func PostSetToutu(id int, credential *Credential) (result SetToutuResponse, err error) {
-	err = session.Result(SetToutu{ID: id, Credential: credential}, &result)
-	return
+func PostSetToutu(ctx context.Context, jar http.CookieJar, id int) (SetToutuResponse, error) {
+	return Do[SetToutuResponse](ctx, SetToutu{ID: id, CookieJar: jar})
 }
 
 // 查询用户最近玩过的游戏
 type LastPlayGame struct {
 	req.Get
-	*Credential
+	http.CookieJar
 
 	// 目标用户 UID
 	MID int `req:"query"`
@@ -2124,15 +1976,14 @@ type LastPlayGameResponse struct {
 }
 
 // 查询用户最近玩过的游戏
-func GetLastPlayGame(uid int, credential *Credential) (result LastPlayGameResponse, err error) {
-	err = session.Result(LastPlayGame{MID: uid, Credential: credential}, &result)
-	return
+func GetLastPlayGame(ctx context.Context, jar http.CookieJar, uid int) (LastPlayGameResponse, error) {
+	return Do[LastPlayGameResponse](ctx, LastPlayGame{MID: uid, CookieJar: jar})
 }
 
 // 查询用户最近投币视频（Web）
 type CoinVideo struct {
 	req.Get
-	*Credential
+	http.CookieJar
 
 	// 目标用户 UID
 	Vmid int `req:"query"`
@@ -2148,15 +1999,14 @@ type CoinVideoResponse struct {
 }
 
 // 查询用户最近投币视频（Web）
-func GetCoinVideo(uid int, credential *Credential) (result CoinVideoResponse, err error) {
-	err = session.Result(CoinVideo{Vmid: uid, Credential: credential}, &result)
-	return
+func GetCoinVideo(ctx context.Context, jar http.CookieJar, uid int) (CoinVideoResponse, error) {
+	return Do[CoinVideoResponse](ctx, CoinVideo{Vmid: uid, CookieJar: jar})
 }
 
 // 查询用户最近点赞视频（Web）
 type LikeVideo struct {
 	req.Get
-	*Credential
+	http.CookieJar
 
 	// 目标用户 UID
 	Vmid int `req:"query"`
@@ -2174,15 +2024,14 @@ type LikeVideoResponse struct {
 }
 
 // 查询用户最近点赞视频（Web）
-func GetLikeVideo(uid int, credential *Credential) (result LikeVideoResponse, err error) {
-	err = session.Result(LikeVideo{Vmid: uid, Credential: credential}, &result)
-	return
+func GetLikeVideo(ctx context.Context, jar http.CookieJar, uid int) (LikeVideoResponse, error) {
+	return Do[LikeVideoResponse](ctx, LikeVideo{Vmid: uid, CookieJar: jar})
 }
 
 // 查询用户投稿视频明细
 type ArcSearch struct {
 	GetWBI
-	*Credential
+	http.CookieJar
 
 	// 目标用户 UID
 	MID int `req:"query"`
@@ -2214,24 +2063,6 @@ type ArcSearch struct {
 func (ArcSearch) RawURL() string {
 	return "/space/wbi/arc/search"
 }
-
-func (api *ArcSearch) ReadPage() (v ArcSearchResponse, err error) {
-	if api.Pn == 0 {
-		api.Pn = 1
-	}
-	err = session.Result(api, &v)
-	if err != nil {
-		return
-	}
-	if len(v.Data.List.Vlist) == 0 {
-		err = ErrNoMorePage
-		return
-	}
-	api.Pn++
-	return
-}
-
-var _ PageReader[ArcSearchResponse] = (*ArcSearch)(nil)
 
 type ArcSearchVideo struct {
 	Comment          int    `json:"comment"`            // 44 评论数
@@ -2304,15 +2135,14 @@ type ArcSearchResponse struct {
 }
 
 // 查询用户投稿视频明细
-func GetArcSearch(uid int, credential *Credential) (result ArcSearchResponse, err error) {
-	err = session.Result(ArcSearch{MID: uid, Credential: credential}, &result)
-	return
+func GetArcSearch(ctx context.Context, jar http.CookieJar, uid int) (ArcSearchResponse, error) {
+	return Do[ArcSearchResponse](ctx, ArcSearch{MID: uid, CookieJar: jar})
 }
 
 // 查询用户投稿专栏明细
 type Article struct {
 	GetWBI
-	*Credential
+	http.CookieJar
 
 	// 目标用户 UID
 	MID int `req:"query"`
@@ -2336,24 +2166,6 @@ type Article struct {
 func (Article) RawURL() string {
 	return "/space/wbi/article"
 }
-
-func (api *Article) ReadPage() (v ArticleResponse, err error) {
-	if api.Pn == 0 {
-		api.Pn = 1
-	}
-	err = session.Result(api, &v)
-	if err != nil {
-		return
-	}
-	if len(v.Data.Articles) == 0 {
-		err = ErrNoMorePage
-		return
-	}
-	api.Pn++
-	return
-}
-
-var _ PageReader[ArticleResponse] = (*Article)(nil)
 
 type ArticleResponse struct {
 	Error
@@ -2461,15 +2273,14 @@ type ArticleResponse struct {
 }
 
 // 查询用户投稿专栏明细
-func GetArticle(uid int, credential *Credential) (result ArticleResponse, err error) {
-	err = session.Result(Article{MID: uid, Credential: credential}, &result)
-	return
+func GetArticle(ctx context.Context, jar http.CookieJar, uid int) (ArticleResponse, error) {
+	return Do[ArticleResponse](ctx, Article{MID: uid, CookieJar: jar})
 }
 
 // 查询用户专栏文集明细
 type ArticleLists struct {
 	req.Get
-	*Credential
+	http.CookieJar
 
 	// 目标用户 UID
 	MID int `req:"query"`
@@ -2510,9 +2321,8 @@ type ArticleListsResponse struct {
 }
 
 // 查询用户专栏文集明细
-func GetArticleLists(uid int, credential *Credential) (result ArticleListsResponse, err error) {
-	err = session.Result(ArticleLists{MID: uid, Credential: credential}, &result)
-	return
+func GetArticleLists(ctx context.Context, jar http.CookieJar, uid int) (ArticleListsResponse, error) {
+	return Do[ArticleListsResponse](ctx, ArticleLists{MID: uid, CookieJar: jar})
 }
 
 // 查询用户投稿音频明细
@@ -2540,24 +2350,6 @@ type SongUpper struct {
 func (SongUpper) RawURL() string {
 	return "https://api.bilibili.com/audio/music-service/web/song/upper"
 }
-
-func (api *SongUpper) ReadPage() (v SongUpperResponse, err error) {
-	if api.Pn == 0 {
-		api.Pn = 1
-	}
-	err = session.Result(api, &v)
-	if err != nil {
-		return
-	}
-	if len(v.Data.Data) == 0 {
-		err = ErrNoMorePage
-		return
-	}
-	api.Pn++
-	return
-}
-
-var _ PageReader[SongUpperResponse] = (*SongUpper)(nil)
 
 type SongUpperResponse struct {
 	Error
@@ -2605,9 +2397,8 @@ type SongUpperResponse struct {
 }
 
 // 查询用户投稿音频明细
-func GetSongUpper(uid int) (result SongUpperResponse, err error) {
-	err = session.Result(SongUpper{UID: uid}, &result)
-	return
+func GetSongUpper(ctx context.Context, uid int) (SongUpperResponse, error) {
+	return Do[SongUpperResponse](ctx, SongUpper{UID: uid})
 }
 
 // 做吐了 先做到这里吧
