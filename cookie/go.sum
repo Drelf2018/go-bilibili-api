@@ -1,0 +1,12 @@
+github.com/Drelf2018/go-bilibili-api v0.0.0-20260126130146-8446875b1676 h1:xyVEJ874a7Ku3RGfE4T3ZUmEJgvDSj6wr4Xtehaocyk=
+github.com/Drelf2018/go-bilibili-api v0.0.0-20260126130146-8446875b1676/go.mod h1:CsV77Sftkm7NfEMDjgynSw4e0T/aCLtANlR5y+x4T90=
+github.com/Drelf2018/req v0.0.0-20260119155603-2094703bdf97 h1:tOWzEEsbqZMdfj6A4FFJqemyhN7AAIniQHtZixLf6ak=
+github.com/Drelf2018/req v0.0.0-20260119155603-2094703bdf97/go.mod h1:SgQkhv/iD3+Sqvg9KCqiElH7jaXMl4OWGBKHd6MJoCE=
+github.com/jinzhu/inflection v1.0.0 h1:K317FqzuhWc8YvSVlFMCCUb36O/S9MCKRDI7QkRKD/E=
+github.com/jinzhu/inflection v1.0.0/go.mod h1:h+uFLlag+Qp1Va5pdKtLDYj+kHp5pxUVkryuEj+Srlc=
+github.com/jinzhu/now v1.1.5 h1:/o9tlHleP7gOFmsnYNz3RGnqzefHA47wQpKrrdTIwXQ=
+github.com/jinzhu/now v1.1.5/go.mod h1:d3SSVoowX0Lcu0IBviAWJpolVfI5UJVZZ7cO71lE/z8=
+golang.org/x/text v0.20.0 h1:gK/Kv2otX8gz+wn7Rmb3vT96ZwuoxnQlY+HlJVj7Qug=
+golang.org/x/text v0.20.0/go.mod h1:D4IsuqiFMhST5bX19pQ9ikHC2GsaKyk/oF+pn3ducp4=
+gorm.io/gorm v1.31.1 h1:7CA8FTFz/gRfgqgpeKIBcervUn3xSyPUmr6B2WXJ7kg=
+gorm.io/gorm v1.31.1/go.mod h1:XyQVbO2k6YkOis7C2437jSit3SsDK72s7n7rsSHd+Gs=
